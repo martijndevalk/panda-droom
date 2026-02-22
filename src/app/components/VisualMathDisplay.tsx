@@ -11,11 +11,11 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
   // Voor getallen herkenning: toon gewoon de objecten
   if (category === 'numbers') {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-xl">
-        <p className="text-center text-lg mb-4 text-muted-foreground">
+      <div className="bg-white rounded-3xl p-4 md:p-6 shadow-xl">
+        <p className="text-center text-base md:text-lg mb-2 md:mb-4 text-muted-foreground">
           {question.displayText}
         </p>
-        <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
+        <div className="flex flex-wrap gap-1 md:gap-2 justify-center max-w-2xl">
           {Array.from({ length: Math.min(operand1, 20) }).map((_, index) => (
             <motion.div
               key={index}
@@ -26,7 +26,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
                 type: 'spring',
                 stiffness: 200,
               }}
-              className="text-4xl"
+              className="text-3xl md:text-4xl"
             >
               🎋
             </motion.div>
@@ -44,11 +44,11 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
   // Voor optellen
   if (category === 'plus' && operand2 !== undefined) {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-xl max-w-3xl">
-        <div className="flex items-center justify-center gap-6 flex-wrap">
+      <div className="bg-white rounded-3xl p-4 md:p-6 shadow-xl max-w-3xl">
+        <div className="flex items-center justify-center gap-3 md:gap-6 flex-wrap">
           {/* Eerste groep */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-wrap gap-2 justify-center max-w-xs">
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <div className="flex flex-wrap gap-1 md:gap-2 justify-center max-w-xs">
               {Array.from({ length: operand1 }).map((_, index) => (
                 <motion.div
                   key={`a-${index}`}
@@ -59,13 +59,13 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
                     type: 'spring',
                     stiffness: 200,
                   }}
-                  className="text-3xl"
+                  className="text-2xl md:text-3xl"
                 >
                   🎋
                 </motion.div>
               ))}
             </div>
-            <span className="text-4xl font-medium text-primary">{operand1}</span>
+            <span className="text-3xl md:text-4xl font-medium text-primary">{operand1}</span>
           </div>
 
           {/* Plus symbool */}
@@ -73,14 +73,14 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
-            className="text-5xl text-foreground"
+            className="text-4xl md:text-5xl text-foreground"
           >
             ➕
           </motion.div>
 
           {/* Tweede groep */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-wrap gap-2 justify-center max-w-xs">
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <div className="flex flex-wrap gap-1 md:gap-2 justify-center max-w-xs">
               {Array.from({ length: operand2 }).map((_, index) => (
                 <motion.div
                   key={`b-${index}`}
@@ -91,13 +91,13 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
                     type: 'spring',
                     stiffness: 200,
                   }}
-                  className="text-3xl"
+                  className="text-2xl md:text-3xl"
                 >
                   🎋
                 </motion.div>
               ))}
             </div>
-            <span className="text-4xl font-medium text-primary">{operand2}</span>
+            <span className="text-3xl md:text-4xl font-medium text-primary">{operand2}</span>
           </div>
 
           {/* Equals symbool */}
@@ -105,7 +105,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
-            className="text-5xl text-foreground"
+            className="text-4xl md:text-5xl text-foreground"
           >
             =
           </motion.div>
@@ -115,7 +115,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 1, type: 'spring', stiffness: 200 }}
-            className="text-6xl"
+            className="text-5xl md:text-6xl"
           >
             ❓
           </motion.div>
@@ -127,11 +127,11 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
   // Voor aftrekken
   if (category === 'minus' && operand2 !== undefined) {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-xl max-w-3xl">
-        <div className="flex items-center justify-center gap-6 flex-wrap">
+      <div className="bg-white rounded-3xl p-4 md:p-6 shadow-xl max-w-3xl">
+        <div className="flex items-center justify-center gap-3 md:gap-6 flex-wrap">
           {/* Eerste groep (met doorgestreepte items) */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-wrap gap-2 justify-center max-w-xs">
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <div className="flex flex-wrap gap-1 md:gap-2 justify-center max-w-xs">
               {Array.from({ length: operand1 }).map((_, index) => {
                 const isRemoved = index < operand2;
                 return (
@@ -164,7 +164,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
                 );
               })}
             </div>
-            <span className="text-4xl font-medium text-primary">{operand1}</span>
+            <span className="text-3xl md:text-4xl font-medium text-primary">{operand1}</span>
           </div>
 
           {/* Min symbool */}
@@ -172,14 +172,14 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
-            className="text-5xl text-foreground"
+            className="text-4xl md:text-5xl text-foreground"
           >
             ➖
           </motion.div>
 
           {/* Aantal weg */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl font-medium text-destructive">{operand2}</span>
+          <div className="flex flex-col items-center gap-1 md:gap-2">
+            <span className="text-3xl md:text-4xl font-medium text-destructive">{operand2}</span>
           </div>
 
           {/* Equals symbool */}
@@ -187,7 +187,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
-            className="text-5xl text-foreground"
+            className="text-4xl md:text-5xl text-foreground"
           >
             =
           </motion.div>
@@ -197,7 +197,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 1, type: 'spring', stiffness: 200 }}
-            className="text-6xl"
+            className="text-5xl md:text-6xl"
           >
             ❓
           </motion.div>
@@ -209,20 +209,20 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
   // Voor keer (vermenigvuldigen) - toon groepen
   if (category === 'multiply' && operand2 !== undefined) {
     return (
-      <div className="bg-white rounded-3xl p-6 shadow-xl max-w-3xl">
-        <p className="text-center text-lg mb-4 text-muted-foreground">
+      <div className="bg-white rounded-3xl p-4 md:p-6 shadow-xl max-w-3xl">
+        <p className="text-center text-base md:text-lg mb-2 md:mb-4 text-muted-foreground">
           {operand1} groepen van {operand2}
         </p>
-        <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col gap-2 md:gap-4 items-center">
           {Array.from({ length: Math.min(operand1, 5) }).map((_, groupIndex) => (
             <motion.div
               key={groupIndex}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: groupIndex * 0.2 }}
-              className="flex gap-2 items-center"
+              className="flex gap-1 md:gap-2 items-center"
             >
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2">
                 {Array.from({ length: operand2 }).map((_, itemIndex) => (
                   <motion.div
                     key={`${groupIndex}-${itemIndex}`}
@@ -233,7 +233,7 @@ export function VisualMathDisplay({ question }: VisualMathDisplayProps) {
                       type: 'spring',
                       stiffness: 200,
                     }}
-                    className="text-3xl"
+                    className="text-2xl md:text-3xl"
                   >
                     🎋
                   </motion.div>

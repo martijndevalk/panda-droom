@@ -5,7 +5,7 @@ import { Numpad } from './components/Numpad';
 import { BambooGrowth } from './components/BambooGrowth';
 import { CategorySelector } from './components/CategorySelector';
 import { VisualMathDisplay } from './components/VisualMathDisplay';
-import { FeedbackAnimation, SlideInContainer, SuccessParticles, Pulse } from './components/AnimationWrappers';
+import { FeedbackAnimation, SlideInContainer, SuccessParticles } from './components/AnimationWrappers';
 import { useMathGame } from './hooks/useMathGame';
 import confetti from 'canvas-confetti';
 
@@ -18,14 +18,14 @@ export default function App() {
   const [showShake, setShowShake] = useState(false);
   const [showSuccessParticles, setShowSuccessParticles] = useState(false);
 
-  const { 
-    gameState, 
+  const {
+    gameState,
     category,
-    nextQuestion, 
-    checkAnswer, 
+    nextQuestion,
+    checkAnswer,
     resetBambooGrowth,
     changeCategory,
-    isBambooComplete 
+    isBambooComplete
   } = useMathGame('plus');
 
   // Trigger confetti wanneer bamboo compleet is
@@ -34,15 +34,15 @@ export default function App() {
       // Extra groot confetti effect voor de mijlpaal!
       const duration = 3000;
       const animationEnd = Date.now() + duration;
-      
+
       const interval = setInterval(() => {
         const timeLeft = animationEnd - Date.now();
-        
+
         if (timeLeft <= 0) {
           clearInterval(interval);
           return;
         }
-        
+
         confetti({
           particleCount: 3,
           angle: 60,
@@ -50,7 +50,7 @@ export default function App() {
           origin: { x: 0, y: 0.7 },
           colors: ['#b8f3d8', '#fef6c7', '#cfe8fc', '#e9d5ff', '#fed7aa'],
         });
-        
+
         confetti({
           particleCount: 3,
           angle: 120,
@@ -59,10 +59,10 @@ export default function App() {
           colors: ['#b8f3d8', '#fef6c7', '#cfe8fc', '#e9d5ff', '#fed7aa'],
         });
       }, 100);
-      
+
       setPandaEmotion('celebrating');
       setPandaText('🎉 Geweldig! Je hebt 5 goede antwoorden! 🎉');
-      
+
       // Reset na 3 seconden
       setTimeout(() => {
         resetBambooGrowth();
@@ -88,15 +88,15 @@ export default function App() {
 
   const handleSubmit = () => {
     if (!inputValue || isBambooComplete) return;
-    
+
     const userAnswer = parseInt(inputValue);
     const isCorrect = checkAnswer(userAnswer);
-    
+
     if (isCorrect) {
       setFeedbackState('correct');
       setShowSuccessParticles(true);
       setPandaEmotion('happy');
-      
+
       // Varieer de positieve feedback
       const successMessages = [
         'Yes! Dat is goed! 🎉',
@@ -106,7 +106,7 @@ export default function App() {
         'Top! Helemaal goed! 💪',
       ];
       setPandaText(successMessages[Math.floor(Math.random() * successMessages.length)]);
-      
+
       // Na 1.5 seconden, volgende vraag
       setTimeout(() => {
         setShowSuccessParticles(false);
@@ -122,7 +122,7 @@ export default function App() {
       setFeedbackState('incorrect');
       setShowShake(true);
       setPandaEmotion('encouraging');
-      
+
       // Varieer de aanmoedigende feedback
       const encouragementMessages = [
         'Bijna goed! Probeer het nog eens! 💪',
@@ -132,9 +132,9 @@ export default function App() {
         'Hmm, probeer het nog eens! Jij kunt het! 💚',
       ];
       setPandaText(encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)]);
-      
+
       setInputValue('');
-      
+
       // Reset shake animatie
       setTimeout(() => {
         setShowShake(false);
@@ -161,7 +161,7 @@ export default function App() {
   // Keyboard support
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isBambooComplete) return;
-    
+
     if (e.key >= '0' && e.key <= '9') {
       handleNumberClick(parseInt(e.key));
     } else if (e.key === 'Backspace') {
@@ -173,8 +173,8 @@ export default function App() {
 
   return (
     <Layout>
-      <div 
-        className="flex-1 flex flex-col items-center justify-start md:justify-center gap-6 p-4 md:p-8 overflow-y-auto"
+      <div
+        className="flex-1 flex flex-col items-center justify-start md:justify-center gap-6 p-4 md:p-8"
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
@@ -193,13 +193,13 @@ export default function App() {
           </div>
         )}
 
-        <PandaCoach 
-          emotion={pandaEmotion} 
+        <PandaCoach
+          emotion={pandaEmotion}
           text={pandaText}
         />
 
         {showCategorySelector ? (
-          <CategorySelector 
+          <CategorySelector
             currentCategory={category}
             onSelectCategory={handleCategorySelect}
           />
@@ -230,7 +230,7 @@ export default function App() {
 
             {/* Input display met feedback animatie */}
             <SlideInContainer delay={0.4}>
-              <FeedbackAnimation 
+              <FeedbackAnimation
                 isCorrect={feedbackState === 'correct' ? true : feedbackState === 'incorrect' ? false : null}
                 showShake={showShake}
               >
@@ -244,19 +244,14 @@ export default function App() {
             </SlideInContainer>
 
             <SlideInContainer delay={0.5}>
-              <Pulse active={!inputValue && feedbackState === 'neutral'}>
-                <Numpad
-                  onNumberClick={handleNumberClick}
-                  onBackspace={handleBackspace}
-                  onSubmit={handleSubmit}
-                  disabled={isBambooComplete}
-                />
-              </Pulse>
+              <Numpad
+                onNumberClick={handleNumberClick}
+                onBackspace={handleBackspace}
+                onSubmit={handleSubmit}
+                disabled={isBambooComplete}
+              />
             </SlideInContainer>
 
-            <p className="text-xs md:text-sm text-muted-foreground">
-              Je kunt ook je toetsenbord gebruiken! ⌨️
-            </p>
           </>
         )}
       </div>

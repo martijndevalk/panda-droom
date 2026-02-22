@@ -16,7 +16,7 @@ export function BambooGrowth({ growth, max = 5 }: BambooGrowthProps) {
             <motion.div
               key={index}
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ 
+              animate={{
                 scale: isGrown ? 1 : 0.8,
                 opacity: isGrown ? 1 : 0.3,
               }}
@@ -25,7 +25,7 @@ export function BambooGrowth({ growth, max = 5 }: BambooGrowthProps) {
                 type: 'spring',
                 stiffness: 200,
               }}
-              className={`w-12 h-16 rounded-2xl flex items-center justify-center text-3xl ${
+              className={`w-10 h-14 md:w-12 md:h-16 rounded-2xl flex items-center justify-center text-2xl md:text-3xl ${
                 isGrown ? 'bg-primary' : 'bg-muted'
               }`}
             >

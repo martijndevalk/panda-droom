@@ -15,9 +15,9 @@ const categories = [
 
 export function CategorySelector({ currentCategory, onSelectCategory }: CategorySelectorProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 shadow-xl">
-      <p className="text-center mb-3 text-sm text-muted-foreground">Kies een oefening</p>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 md:p-4 shadow-xl">
+      <p className="text-center mb-2 md:mb-3 text-xs md:text-sm text-muted-foreground">Kies een oefening</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
         {categories.map((cat) => {
           const isSelected = currentCategory === cat.id;
           return (
@@ -27,12 +27,12 @@ export function CategorySelector({ currentCategory, onSelectCategory }: Category
               whileHover={{ scale: 1.05 }}
               onClick={() => onSelectCategory(cat.id)}
               className={`
-                ${cat.color} rounded-2xl p-4 flex flex-col items-center gap-2 transition-all
+                ${cat.color} rounded-2xl p-3 md:p-4 flex flex-col items-center gap-1 md:gap-2 transition-all
                 ${isSelected ? 'ring-4 ring-foreground/30 shadow-lg' : 'opacity-70 hover:opacity-100'}
               `}
             >
-              <span className="text-4xl">{cat.emoji}</span>
-              <span className="text-sm font-medium">{cat.label}</span>
+              <span className="text-3xl md:text-4xl">{cat.emoji}</span>
+              <span className="text-xs md:text-sm font-medium">{cat.label}</span>
             </motion.button>
           );
         })}
