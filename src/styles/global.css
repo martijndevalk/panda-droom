@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-light font-bubble text-dark overflow-hidden;
+  }
+}
+
+.cloud {
+  background: white;
+  border-radius: 50px;
+  position: absolute;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
