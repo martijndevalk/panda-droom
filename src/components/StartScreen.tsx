@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Play } from 'lucide-react';
-
+import { PlayIcon } from 'lucide-animated';
 interface StartScreenProps {
   onStart: (name: string) => void;
 }
@@ -17,14 +17,14 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-sky-200 min-h-screen relative w-full overflow-hidden">
+    <div className="flex flex-col items-center justify-center p-4 sm:p-8 bg-sky-200 min-h-[100svh] relative w-full overflow-hidden">
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-center mb-10 z-10 bg-white p-8 rounded-[2rem] shadow-xl max-w-sm w-full border-4 border-sky-300"
+        className="text-center mb-6 sm:mb-10 z-10 bg-white p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl max-w-sm w-full border-4 border-sky-300"
       >
-        <h1 className="text-3xl font-bold text-dark drop-shadow-sm mb-4">Welkom bij Panda's Getallenreis!</h1>
-        <p className="text-lg text-gray-600 mb-6 font-medium">Hoe heet jij?</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-dark drop-shadow-sm mb-4">Welkom bij Panda's Getallenreis!</h1>
+        <p className="text-base sm:text-lg text-gray-600 mb-6 font-medium">Hoe heet jij?</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -32,7 +32,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Je naam..."
-            className="w-full text-2xl p-4 rounded-xl border-2 border-gray-300 focus:border-green-400 focus:outline-none focus:ring-4 focus:ring-green-100 text-center font-bold text-gray-800"
+            className="w-full text-xl sm:text-2xl p-3 sm:p-4 rounded-xl border-2 border-gray-300 focus:border-green-400 focus:outline-none focus:ring-4 focus:ring-green-100 text-center font-bold text-gray-800"
             autoFocus
           />
           <motion.button
@@ -40,11 +40,11 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
             whileTap={{ scale: 0.95 }}
             type="submit"
             disabled={!name.trim()}
-            className={`flex items-center justify-center gap-2 p-4 rounded-xl font-bold text-xl shadow-md transition-colors ${
+            className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl font-bold text-lg sm:text-xl shadow-md transition-colors ${
               name.trim() ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <Play fill="currentColor" size={24} />
+            <PlayIcon size={24} className="fill-current text-white" />
             Starten
           </motion.button>
         </form>

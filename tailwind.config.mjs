@@ -10,7 +10,7 @@ export default {
         'bamboo': '#75B853'
       },
       fontFamily: {
-        bubble: ['Fredoka One', 'Baloo 2', 'sans-serif'],
+        bubble: ['"Chewy"', '"Nunito"', 'sans-serif'],
       }
     },
   },

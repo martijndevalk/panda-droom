@@ -1,4 +1,5 @@
-import { ArrowLeft, Star, Heart, Award, Sparkles, Gift, LockKeyholeOpen } from 'lucide-react';
+import { Star, Award, Gift } from 'lucide-react';
+import { ArrowLeftIcon, HeartIcon, SparklesIcon, LockKeyholeOpenIcon } from 'lucide-animated';
 import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
 
@@ -15,41 +16,41 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
   const stickers = [
     { title: "Verkenner", icon: <Star size={40} className="text-yellow-500 fill-current" />, req: 'world-1' },
     { title: "Rekenwonder", icon: <Award size={40} className="text-purple-500 fill-current" />, req: 'world-2' },
-    { title: "Tafel Topper", icon: <Heart size={40} className="text-red-500 fill-current" />, req: 'world-3' },
-    { title: "Meester", icon: <Sparkles size={40} className="text-blue-500 fill-current" />, req: 'world-4' }
+    { title: "Tafel Topper", icon: <HeartIcon size={40} className="text-red-500 fill-current" />, req: 'world-3' },
+    { title: "Meester", icon: <SparklesIcon size={40} className="text-blue-500 fill-current" />, req: 'world-4' }
   ];
 
   const earned = stickers.filter(s => unlockedWorlds.includes(s.req));
 
   return (
-    <div className="w-full h-full flex flex-col p-8 bg-amber-100 overflow-y-auto">
-      <div className="flex items-center mb-8 gap-4">
+    <div className="w-full flex-1 flex flex-col p-2 sm:p-4 md:p-8 bg-amber-100 min-h-[100svh]">
+      <div className="flex items-center mb-4 sm:mb-6 md:mb-8 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-0">
         <button
           onClick={() => {
             trigger('nudge');
             onBack();
           }}
-          className="p-3 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-50"
+          className="p-2 sm:p-3 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-50"
         >
-          <ArrowLeft size={32} />
+          <ArrowLeftIcon className="w-6 h-6 md:w-8 md:h-8" />
         </button>
-        <h1 className="text-4xl font-bold text-amber-900 flex items-center gap-3">
-          <Gift size={40} /> Mijn Schatkist
+        <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-amber-900 flex items-center gap-2 md:gap-3">
+          <Gift className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" /> Mijn Schatkist
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-6 sm:mb-12">
         {stickers.map((s, i) => {
           const isUnlocked = unlockedWorlds.includes(s.req);
           return (
             <motion.div
               key={i}
               whileHover={{ scale: isUnlocked ? 1.05 : 1 }}
-              className={`p-6 rounded-[2rem] shadow-xl border-4 flex flex-col items-center gap-4 text-center ${
+              className={`p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl border-2 sm:border-4 flex flex-col items-center gap-2 sm:gap-4 text-center ${
                 isUnlocked ? 'bg-white border-yellow-400' : 'bg-gray-200 border-gray-300 opacity-60'
               }`}
             >
-              <div className="bg-amber-100 p-6 rounded-full shadow-inner">
+              <div className="bg-amber-100 p-3 sm:p-6 rounded-full shadow-inner">
                 {isUnlocked ? s.icon : <Star size={40} className="text-gray-400" />}
               </div>
               <h3 className={`text-xl font-bold ${isUnlocked ? 'text-amber-800' : 'text-gray-500'}`}>
@@ -60,10 +61,10 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
         })}
       </div>
 
-      <div className="bg-white p-8 rounded-[2rem] shadow-lg border-4 border-amber-300 max-w-2xl mx-auto w-full">
+      <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-lg border-2 sm:border-4 border-amber-300 max-w-2xl mx-auto w-full mb-4 sm:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
           <h2 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
-            <LockKeyholeOpen /> Speciale Ouders Sectie
+            <LockKeyholeOpenIcon /> Speciale Ouders Sectie
           </h2>
           <button
             onClick={() => {

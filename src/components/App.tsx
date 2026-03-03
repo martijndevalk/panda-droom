@@ -70,7 +70,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full min-h-[100dvh] flex flex-col relative">
       <AnimatePresence mode="wait">
         {view === 'start' && (
           <motion.div
@@ -78,7 +78,7 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="w-full h-full absolute inset-0"
+            className="w-full flex-1 flex flex-col relative"
           >
             <StartScreen onStart={handleStart} />
           </motion.div>
@@ -90,7 +90,7 @@ export default function App() {
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
-            className="w-full h-full absolute inset-0"
+            className="w-full flex-1 flex flex-col relative"
           >
             <Map
               playerName={playerName}
@@ -107,7 +107,7 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="w-full h-full absolute inset-0 bg-sky-100" // To prevent white flash
+            className="w-full flex-1 flex flex-col relative bg-sky-100" // To prevent white flash
           >
             <Level
               worldId={currentWorldId}
@@ -123,7 +123,7 @@ export default function App() {
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -100 }}
-            className="w-full h-full absolute inset-0"
+            className="w-full flex-1 flex flex-col relative"
           >
             <Treasury
               playerName={playerName}

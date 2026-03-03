@@ -103,9 +103,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   const progress = ((currentIndex) / sequence.length) * 100;
 
   return (
-    <div className="w-full h-full flex flex-col items-center bg-sky-100 p-4 relative">
+    <div className="w-full flex-1 flex flex-col items-center bg-sky-100 p-2 sm:p-4 relative min-h-[100dvh]">
       {/* Header / Nav */}
-      <div className="w-full max-w-2xl flex items-center justify-between mb-8 z-10 pt-4">
+      <div className="w-full max-w-2xl flex items-center justify-between mb-4 sm:mb-8 z-10 pt-2 sm:pt-4">
         <button
           onClick={() => {
             trigger('nudge');
@@ -127,7 +127,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
       </div>
 
       {/* Main Play Area */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full z-10 gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center w-full z-10 gap-2 sm:gap-8">
 
         {/* Panda + Balloon */}
         <div className="flex flex-col items-center relative">
@@ -138,9 +138,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
               initial={{ scale: 0.5, opacity: 0, y: 50 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0, opacity: 0, y: -50 }}
-              className="bg-white border-4 border-sky-300 rounded-[3rem] p-8 shadow-2xl relative mb-12 flex items-center gap-4"
+              className="bg-white border-4 border-sky-300 rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl relative mb-8 sm:mb-12 flex items-center gap-2 sm:gap-4"
             >
-              <span className="text-6xl font-bold text-dark">{currentProblem.question}</span>
+              <span className="text-3xl sm:text-4xl md:text-6xl font-bold text-dark">{currentProblem.question}</span>
 
               {/* Add a little tail to the balloon */}
               <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-t-[20px] border-t-white border-r-[20px] border-r-transparent filter drop-shadow z-20"></div>
@@ -192,7 +192,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
         </div>
 
         {/* Input Box */}
-        <div className={`h-24 w-64 bg-white rounded-3xl border-4 shadow-inner flex items-center justify-center relative overflow-hidden transition-colors ${
+        <div className={`h-16 w-48 sm:h-24 sm:w-64 bg-white rounded-2xl sm:rounded-3xl border-4 shadow-inner flex items-center justify-center relative overflow-hidden transition-colors ${
           feedback === 'success' ? 'border-green-400 bg-green-50' :
           feedback === 'fail' ? 'border-red-400 bg-red-50' :
           'border-sky-300'
@@ -209,7 +209,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
               </motion.div>
             )}
           </AnimatePresence>
-          <span className={`text-6xl font-bold font-mono tracking-wider ${
+          <span className={`text-3xl sm:text-4xl md:text-6xl font-bold font-mono tracking-wider ${
             feedback === 'success' ? 'text-green-600' :
             feedback === 'fail' ? 'text-red-600' :
             'text-dark'
@@ -219,7 +219,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
         </div>
       </div>
 
-      <div className="w-full pb-8 z-10 flex flex-col items-center">
+      <div className="w-full pb-2 sm:pb-8 z-10 flex flex-col items-center">
         <Numpad
           onType={handleType}
           onClear={clearInput}

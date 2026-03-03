@@ -51,15 +51,15 @@ export const Numpad: React.FC<NumpadProps> = ({ onType, onClear, onSubmit, disab
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4 w-full max-w-sm mx-auto p-4 bg-white/50 backdrop-blur-md rounded-3xl shadow-xl">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full max-w-sm mx-auto p-2 sm:p-4 bg-white/50 backdrop-blur-md rounded-3xl shadow-xl">
       {keys.map((k) => (
         <button
           key={k.val}
           onClick={() => handleClick(k.val)}
           disabled={disabled}
-          className={`${k.color} text-white font-bold text-4xl p-6 rounded-2xl shadow-md transform transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center`}
+          className={`${k.color} text-white font-bold text-3xl sm:text-4xl p-3 sm:p-6 rounded-2xl shadow-md transform transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center`}
         >
-          {k.val === 'C' ? <Delete size={32} /> : k.label}
+          {k.val === 'C' ? <Delete size={28} className="sm:w-8 sm:h-8" /> : k.label}
         </button>
       ))}
     </div>
