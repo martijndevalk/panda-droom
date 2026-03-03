@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Play } from 'lucide-react';
-import { PlayIcon } from 'lucide-animated';
+
 interface StartScreenProps {
   onStart: (name: string) => void;
 }
@@ -44,7 +44,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
               name.trim() ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            <PlayIcon size={24} className="fill-current text-white" />
+            <Play size={24} className="fill-current text-white" />
             Starten
           </motion.button>
         </form>

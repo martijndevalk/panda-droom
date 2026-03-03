@@ -56,17 +56,25 @@ export default function App() {
     setView('level');
   };
 
-  const handleLevelComplete = (id: string) => {
+  const handleLevelComplete = (id: string, action: 'map' | 'next' = 'map') => {
     // Find next world
     const currentIndex = Worlds.findIndex(w => w.id === id);
+    let nextWorldId: string | null = null;
+
     if (currentIndex >= 0 && currentIndex < Worlds.length - 1) {
       const nextWorld = Worlds[currentIndex + 1];
+      nextWorldId = nextWorld.id;
       if (!unlockedWorlds.includes(nextWorld.id)) {
         saveProgress([...unlockedWorlds, nextWorld.id]);
       }
     }
-    setView('map');
-    setCurrentWorldId(null);
+
+    if (action === 'next' && nextWorldId) {
+      setCurrentWorldId(nextWorldId);
+    } else {
+      setView('map');
+      setCurrentWorldId(null);
+    }
   };
 
   return (
@@ -110,6 +118,7 @@ export default function App() {
             className="w-full flex-1 flex flex-col relative bg-sky-100" // To prevent white flash
           >
             <Level
+              key={currentWorldId}
               worldId={currentWorldId}
               onBack={() => { playSound('pop'); setView('map'); }}
               onComplete={handleLevelComplete}

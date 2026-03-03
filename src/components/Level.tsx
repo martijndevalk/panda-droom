@@ -10,7 +10,7 @@ import { useWebHaptics } from 'web-haptics/react';
 interface LevelProps {
   worldId: string;
   onBack: () => void;
-  onComplete: (worldId: string) => void;
+  onComplete: (worldId: string, action: 'map' | 'next') => void;
 }
 
 export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => {
@@ -21,6 +21,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   const [inputVal, setInputVal] = useState('');
   const [feedback, setFeedback] = useState<'none' | 'success' | 'fail'>('none');
   const [pandaState, setPandaState] = useState<'idle' | 'happy' | 'thinking'>('idle');
+  const [isLevelComplete, setIsLevelComplete] = useState(false);
 
   useEffect(() => {
     setSequence(world.generateSequence());
@@ -76,8 +77,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
             origin: { y: 0.5 }
           });
           setTimeout(() => {
-            onComplete(worldId);
-          }, 2000);
+            playSound('success');
+            setIsLevelComplete(true);
+          }, 1000);
         }
       }, 1000);
     } else {
@@ -101,6 +103,52 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   if (!sequence.length) return null;
 
   const progress = ((currentIndex) / sequence.length) * 100;
+
+  if (isLevelComplete) {
+    const currentIndexInGame = Worlds.findIndex(w => w.id === worldId);
+    const hasNext = currentIndexInGame >= 0 && currentIndexInGame < Worlds.length - 1;
+
+    return (
+      <div className="w-full flex-1 flex flex-col items-center justify-center p-4 relative min-h-[100dvh]">
+        <motion.div
+           initial={{ scale: 0.5, opacity: 0, y: 50 }}
+           animate={{ scale: 1, opacity: 1, y: 0 }}
+           className="bg-white p-8 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl flex flex-col items-center max-w-sm w-full text-center border-4 border-sky-300"
+        >
+          <div className="w-24 h-24 sm:w-32 sm:h-32 bg-yellow-100 rounded-full flex items-center justify-center mb-6 shadow-inner relative">
+            <span className="text-6xl sm:text-8xl">🎋</span>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+              className="absolute inset-0 border-4 border-dashed border-yellow-400 rounded-full z-0 opacity-50"
+            />
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-black text-sky-600 mb-4 tracking-tight drop-shadow-sm">Geweldig!</h2>
+          <p className="text-xl sm:text-2xl text-gray-700 mb-8 font-medium">
+            Je hebt dit level gehaald! Hier is je beloning: <br/>
+            <strong className="text-green-500 font-extrabold text-2xl sm:text-3xl mt-2 block drop-shadow-sm">+ 1 Bamboetak!</strong>
+          </p>
+
+          <div className="flex flex-col gap-4 w-full">
+            {hasNext && (
+              <button
+                onClick={() => { trigger('success'); onComplete(worldId, 'next'); }}
+                className="w-full py-4 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-[0_6px_0_0_#166534] active:shadow-[0_0px_0_0_#166534] active:translate-y-[6px] transition-all"
+              >
+                Volgend Level
+              </button>
+            )}
+            <button
+              onClick={() => { trigger('nudge'); onComplete(worldId, 'map'); }}
+              className="w-full py-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-[0_6px_0_0_#075985] active:shadow-[0_0px_0_0_#075985] active:translate-y-[6px] transition-all"
+            >
+              Terug naar Map
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex-1 flex flex-col items-center bg-sky-100 p-2 sm:p-4 relative min-h-[100dvh]">
