@@ -4,5 +4,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://martijndevalk.github.io',
+  base: '/panda-droom',
   integrations: [react(), tailwind()]
 });
