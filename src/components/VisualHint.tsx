@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'lucide-react';
+import { XIcon } from 'lucide-animated';
 
 interface VisualHintProps {
   factors: [number, number];
@@ -41,7 +41,7 @@ export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
               className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
               aria-label="Hint sluiten"
             >
-              <X size={20} />
+              <XIcon size={20} />
             </button>
 
             {/* Title */}

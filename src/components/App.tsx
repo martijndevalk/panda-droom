@@ -161,14 +161,15 @@ export default function App() {
   const currentWorld = currentWorldId ? Worlds.find(w => w.id === currentWorldId) : null;
 
   return (
-    <div className="w-full h-full flex flex-col relative overflow-hidden">
+    <div className="w-full flex-1 min-h-0 flex flex-col relative overflow-hidden">
       <AnimatePresence mode="wait">
         {view === 'start' && (
           <motion.div
             key="start"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
+            exit={{ opacity: 0, scale: 1.03 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             className="w-full flex-1 flex flex-col relative"
           >
             <StartScreen onStart={handleStart} />
@@ -178,9 +179,10 @@ export default function App() {
         {view === 'map' && (
           <motion.div
             key="map"
-            initial={{ opacity: 0, x: -100 }}
+            initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
+            exit={{ opacity: 0, x: 40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             className="w-full flex-1 flex flex-col relative"
           >
             <Map
@@ -195,9 +197,10 @@ export default function App() {
         {view === 'intro' && currentWorld && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
+            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -20 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             className="w-full flex-1 flex flex-col relative bg-sky-100"
           >
             <IntroScreen
@@ -210,14 +213,16 @@ export default function App() {
         {view === 'level' && currentWorldId && (
           <motion.div
             key="level"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
+            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -20 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             className="w-full flex-1 flex flex-col relative bg-sky-100"
           >
             <Level
               key={currentWorldId}
               worldId={currentWorldId}
+              unlockedWorlds={unlockedWorlds}
               onBack={() => { initAudioContext(); playSound('pop'); setView('map'); }}
               onComplete={handleLevelComplete}
             />
@@ -227,9 +232,10 @@ export default function App() {
         {view === 'done' && (
           <motion.div
             key="done"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.93 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
             className="w-full flex-1 flex flex-col relative bg-sky-100"
           >
             <DoneForToday
@@ -242,9 +248,10 @@ export default function App() {
         {view === 'treasury' && (
           <motion.div
             key="treasury"
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -100 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             className="w-full flex-1 flex flex-col relative"
           >
             <Treasury

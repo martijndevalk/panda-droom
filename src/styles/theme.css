@@ -146,10 +146,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-family-primary);
-    height: 100dvh;
-    height: 100vh; /* fallback */
+    height: 100vh; /* fallback for browsers without dvh */
     height: 100dvh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   /**

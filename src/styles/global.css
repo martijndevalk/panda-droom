@@ -9,7 +9,9 @@
 
 @layer base {
   body {
-    @apply bg-light font-bubble text-dark overflow-hidden h-[100dvh];
+    @apply bg-light font-bubble text-dark overflow-hidden flex flex-col;
+    height: 100vh;
+    height: 100dvh;
   }
 }
 
@@ -22,18 +24,34 @@
 }
 
 .cloud:nth-of-type(odd) {
-  animation-duration: 16s;
+  animation: cloudWobble 16s ease-in-out infinite;
   animation-delay: -2s;
 }
 
 .cloud:nth-of-type(3n) {
-  animation-duration: 20s;
+  animation: cloudDrift 20s ease-in-out infinite;
   animation-delay: -5s;
 }
 
 @keyframes cloudFloat {
   0% { transform: translate(0, 0); }
-  33% { transform: translate(15px, 5px); }
-  66% { transform: translate(-10px, 10px); }
+  25% { transform: translate(10px, -3px); }
+  50% { transform: translate(-5px, 6px); }
+  75% { transform: translate(8px, 3px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes cloudWobble {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-12px, 5px); }
+  50% { transform: translate(8px, -3px); }
+  75% { transform: translate(-6px, 8px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes cloudDrift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(15px, -6px); }
+  66% { transform: translate(-10px, 8px); }
   100% { transform: translate(0, 0); }
 }

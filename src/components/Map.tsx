@@ -1,6 +1,7 @@
 import React from 'react';
 import { Worlds } from '../lib/GameData';
-import { Lock, Star, Play } from 'lucide-react';
+import { LockIcon, PlayIcon } from 'lucide-animated';
+import { Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
 
@@ -15,13 +16,16 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
   const { trigger } = useWebHaptics();
 
   return (
-    <div className="flex flex-col items-center p-4 sm:p-8 pt-8 bg-sky-200 h-full relative overflow-y-auto w-full">
+    <div className="flex flex-col items-center p-4 sm:p-8 pt-8 bg-sky-200 flex-1 min-h-0 relative overflow-y-auto w-full">
       <motion.div
-        initial={{ y: -50, opacity: 0 }}
+        initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 22 }}
         className="text-center mb-6 sm:mb-10"
       >
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-dark drop-shadow-md">Welkom {playerName}!</h1>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-dark drop-shadow-md">
+          Welkom {playerName}!
+        </h1>
         <p className="text-base md:text-lg text-dark/80 mt-2 font-medium">Voltooi de avonturen en verdien stickers!</p>
       </motion.div>
 
@@ -31,8 +35,16 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
           return (
             <motion.button
               key={w.id}
-              whileHover={isUnlocked ? { scale: 1.05 } : {}}
-              whileTap={isUnlocked ? { scale: 0.95 } : {}}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                type: 'spring',
+                stiffness: 200,
+                damping: 22,
+                delay: index * 0.06,
+              }}
+              whileHover={isUnlocked ? { scale: 1.03, y: -2 } : {}}
+              whileTap={isUnlocked ? { scale: 0.97 } : {}}
               onClick={() => {
                 if (isUnlocked) {
                   trigger('success');
@@ -54,9 +66,13 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
                 <p className="text-gray-600 font-medium text-sm md:text-lg mt-1">{w.description}</p>
               </div>
 
-              <div className={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full flex justify-center items-center shadow-inner ${isUnlocked ? 'bg-green-100 text-green-500' : 'bg-gray-300 text-gray-500'}`}>
-                {isUnlocked ? <Play className="ml-1 w-6 h-6 md:w-7 md:h-7" fill="currentColor" /> : <Lock className="w-5 h-5 md:w-6 md:h-6" />}
-              </div>
+              <motion.div
+                animate={isUnlocked ? { scale: [1, 1.08, 1] } : {}}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 }}
+                className={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full flex justify-center items-center shadow-inner ${isUnlocked ? 'bg-green-100 text-green-500' : 'bg-gray-300 text-gray-500'}`}
+              >
+                {isUnlocked ? <PlayIcon className="ml-1 w-6 h-6 md:w-7 md:h-7" size={24} /> : <LockIcon className="w-5 h-5 md:w-6 md:h-6" size={20} />}
+              </motion.div>
             </motion.button>
           );
         })}

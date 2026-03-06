@@ -67,7 +67,7 @@ export function IntroScreen({ table, onComplete }: IntroScreenProps) {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center justify-center bg-sky-100 p-4 relative h-full">
+    <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center bg-sky-100 p-4 relative overflow-y-auto">
       {/* Title */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}

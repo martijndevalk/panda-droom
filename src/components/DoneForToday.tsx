@@ -17,36 +17,56 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
   return (
     <div className="w-full flex-1 flex flex-col items-center justify-center p-4 bg-sky-100 h-full">
       <motion.div
-        initial={{ scale: 0.5, opacity: 0, y: 50 }}
+        initial={{ scale: 0.93, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 22 }}
         className="bg-white p-8 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl flex flex-col items-center max-w-sm w-full text-center border-4 border-green-300"
       >
-        {/* Panda with stars */}
-        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner relative">
+        {/* Gently bobbing panda */}
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-24 h-24 sm:w-32 sm:h-32 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner relative"
+        >
           <span className="text-6xl sm:text-7xl">🐼</span>
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
             className="absolute inset-0 border-4 border-dashed border-green-400 rounded-full z-0 opacity-50"
           />
-        </div>
+        </motion.div>
 
-        <h2 className="text-3xl sm:text-4xl font-black text-green-600 mb-4 tracking-tight drop-shadow-sm">
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-3xl sm:text-4xl font-black text-green-600 mb-4 tracking-tight drop-shadow-sm"
+        >
           Super gedaan!
-        </h2>
+        </motion.h2>
 
-        <p className="text-xl sm:text-2xl text-gray-700 mb-2 font-medium">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="text-xl sm:text-2xl text-gray-700 mb-2 font-medium"
+        >
           Goed bezig, {playerName}! 🌟
-        </p>
+        </motion.p>
 
-        <p className="text-lg text-gray-500 mb-8 font-medium">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-lg text-gray-500 mb-8 font-medium"
+        >
           Je bent klaar voor vandaag. Morgen weer een beetje oefenen!
-        </p>
+        </motion.p>
 
         <motion.button
           type="button"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => {
             trigger('success');
             onBackToMap();

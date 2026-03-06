@@ -1,5 +1,6 @@
 import React from 'react';
-import { Delete } from 'lucide-react';
+import { DeleteIcon } from 'lucide-animated';
+import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
 
 interface NumpadProps {
@@ -51,16 +52,25 @@ export const Numpad: React.FC<NumpadProps> = ({ onType, onClear, onSubmit, disab
   };
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full max-w-sm mx-auto p-2 sm:p-4 bg-white/50 backdrop-blur-md rounded-3xl shadow-xl">
-      {keys.map((k) => (
-        <button
+    <div className="grid grid-cols-3 gap-1.5 sm:gap-4 w-full max-w-sm mx-auto p-1.5 sm:p-4 bg-white/50 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl">
+      {keys.map((k, i) => (
+        <motion.button
           key={k.val}
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{
+            type: 'spring',
+            stiffness: 250,
+            damping: 22,
+            delay: i * 0.02,
+          }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => handleClick(k.val)}
           disabled={disabled}
-          className={`${k.color} text-white font-bold text-3xl sm:text-4xl p-3 sm:p-6 rounded-2xl shadow-md transform transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center`}
+          className={`${k.color} text-white font-bold text-3xl sm:text-4xl p-3 sm:p-6 rounded-2xl shadow-md transform transition-all disabled:opacity-50 flex items-center justify-center`}
         >
-          {k.val === 'C' ? <Delete size={28} className="sm:w-8 sm:h-8" /> : k.label}
-        </button>
+          {k.val === 'C' ? <DeleteIcon size={28} className="sm:w-8 sm:h-8" /> : k.label}
+        </motion.button>
       ))}
     </div>
   );
