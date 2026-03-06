@@ -9,7 +9,7 @@
 
 @layer base {
   body {
-    @apply bg-light font-bubble text-dark overflow-x-hidden min-h-[100dvh];
+    @apply bg-light font-bubble text-dark overflow-hidden h-[100dvh];
   }
 }
 

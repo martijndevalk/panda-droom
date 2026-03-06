@@ -4,7 +4,7 @@
   /* Panda Rekenavontuur - Zachte pastelkleuren */
   --font-family-primary: 'Lexend', 'Andika', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-size: 18px;
-  
+
   /* Zachte pastel kleuren - vriendelijk en kalmerend */
   --color-mint-green: #b8f3d8;
   --color-mint-green-dark: #8de5b8;
@@ -15,7 +15,7 @@
   --color-lavender: #e9d5ff;
   --color-peach: #fed7aa;
   --color-soft-orange: #ffb84d;
-  
+
   --background: #fef9f3;
   --foreground: #4a4a4a;
   --card: #ffffff;
@@ -30,11 +30,11 @@
   --muted-foreground: #6b7280;
   --accent: #fef6c7;
   --accent-foreground: #5a4a2d;
-  
+
   /* Zachte waarschuwing in plaats van rood */
   --destructive: #ffb84d;
   --destructive-foreground: #5a3d1a;
-  
+
   --border: rgba(0, 0, 0, 0.08);
   --input: transparent;
   --input-background: #ffffff;
@@ -47,7 +47,7 @@
   --chart-3: #fef6c7;
   --chart-4: #e9d5ff;
   --chart-5: #fed7aa;
-  
+
   /* Extra grote border radius voor vriendelijke vormen */
   --radius: 1.5rem;
   --sidebar: oklch(0.985 0 0);
@@ -146,6 +146,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-family-primary);
+    height: 100dvh;
+    height: 100vh; /* fallback */
+    height: 100dvh;
+    overflow: hidden;
   }
 
   /**
@@ -155,6 +159,7 @@
 
   html {
     font-size: var(--font-size);
+    height: 100%;
   }
 
   h1 {

@@ -15,7 +15,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
   const { trigger } = useWebHaptics();
 
   return (
-    <div className="flex flex-col items-center p-4 sm:p-8 pt-8 bg-sky-200 min-h-[100svh] relative overflow-y-auto w-full">
+    <div className="flex flex-col items-center p-4 sm:p-8 pt-8 bg-sky-200 h-full relative overflow-y-auto w-full">
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

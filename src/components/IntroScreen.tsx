@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { playSound } from '../lib/audio';
+import { playSound, initAudioContext } from '../lib/audio';
+import { ensureAudioUnlocked } from '../lib/tts';
 import confetti from 'canvas-confetti';
 import { useWebHaptics } from 'web-haptics/react';
 
@@ -33,6 +34,8 @@ export function IntroScreen({ table, onComplete }: IntroScreenProps) {
   const handlePlaceGroup = (groupIndex: number) => {
     if (placedGroups.includes(groupIndex)) return;
 
+    initAudioContext();
+    ensureAudioUnlocked();
     playSound('pop');
     trigger('nudge');
 
@@ -56,13 +59,15 @@ export function IntroScreen({ table, onComplete }: IntroScreenProps) {
   };
 
   const handleContinue = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
     playSound('pop');
     trigger('success');
     onComplete();
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center justify-center bg-sky-100 p-4 relative min-h-[100dvh]">
+    <div className="w-full flex-1 flex flex-col items-center justify-center bg-sky-100 p-4 relative h-full">
       {/* Title */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}

@@ -7,7 +7,7 @@ import { IntroScreen } from './IntroScreen';
 import { DoneForToday } from './DoneForToday';
 import { Worlds } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
-import { playSound } from '../lib/audio';
+import { playSound, initAudioContext } from '../lib/audio';
 
 type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done';
 
@@ -91,6 +91,7 @@ export default function App() {
   };
 
   const handleStart = (name: string) => {
+    initAudioContext();
     playSound('pop');
     setPlayerName(name);
     localStorage.setItem('panda-droom-player-name', name);
@@ -98,6 +99,7 @@ export default function App() {
   };
 
   const handleSelectWorld = (id: string) => {
+    initAudioContext();
     playSound('pop');
     setCurrentWorldId(id);
 
@@ -114,6 +116,7 @@ export default function App() {
     if (currentWorldId) {
       markIntroSeen(currentWorldId);
     }
+    initAudioContext();
     playSound('pop');
     setView('level');
   };
@@ -158,7 +161,7 @@ export default function App() {
   const currentWorld = currentWorldId ? Worlds.find(w => w.id === currentWorldId) : null;
 
   return (
-    <div className="w-full min-h-[100dvh] flex flex-col relative">
+    <div className="w-full h-full flex flex-col relative overflow-hidden">
       <AnimatePresence mode="wait">
         {view === 'start' && (
           <motion.div
@@ -184,7 +187,7 @@ export default function App() {
               playerName={playerName}
               unlockedWorlds={unlockedWorlds}
               onSelectWorld={handleSelectWorld}
-              onOpenTreasury={() => { playSound('pop'); setView('treasury'); }}
+              onOpenTreasury={() => { initAudioContext(); playSound('pop'); setView('treasury'); }}
             />
           </motion.div>
         )}
@@ -215,7 +218,7 @@ export default function App() {
             <Level
               key={currentWorldId}
               worldId={currentWorldId}
-              onBack={() => { playSound('pop'); setView('map'); }}
+              onBack={() => { initAudioContext(); playSound('pop'); setView('map'); }}
               onComplete={handleLevelComplete}
             />
           </motion.div>
@@ -231,7 +234,7 @@ export default function App() {
           >
             <DoneForToday
               playerName={playerName}
-              onBackToMap={() => { playSound('pop'); setView('map'); }}
+              onBackToMap={() => { initAudioContext(); playSound('pop'); setView('map'); }}
             />
           </motion.div>
         )}
@@ -247,7 +250,7 @@ export default function App() {
             <Treasury
               playerName={playerName}
               unlockedWorlds={unlockedWorlds}
-              onBack={() => { playSound('pop'); setView('map'); }}
+              onBack={() => { initAudioContext(); playSound('pop'); setView('map'); }}
               onReset={() => {
                 setPlayerName('');
                 setUnlockedWorlds([Worlds[0].id]);

@@ -17,7 +17,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 sm:p-8 bg-sky-200 min-h-[100svh] relative w-full overflow-hidden">
+    <div className="flex flex-col items-center justify-center p-4 sm:p-8 bg-sky-200 h-full relative w-full overflow-hidden">
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

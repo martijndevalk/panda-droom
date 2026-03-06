@@ -23,7 +23,7 @@ const { title } = Astro.props;
     <link rel="manifest" href="/panda-droom/manifest.json" />
     <title>{title}</title>
   </head>
-  <body class="m-0 p-0 bg-light select-none font-bubble flex flex-col min-h-[100dvh]">
+  <body class="m-0 p-0 bg-light select-none font-bubble flex flex-col h-[100dvh] overflow-hidden">
     <slot />
     <script is:inline>
       if ('serviceWorker' in navigator) {

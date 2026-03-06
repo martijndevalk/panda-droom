@@ -3,7 +3,7 @@ import { Numpad } from './Numpad';
 import { Worlds, MathProblem } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
-import { playSound } from '../lib/audio';
+import { playSound, initAudioContext } from '../lib/audio';
 import { speak, stopSpeaking, isTtsConfigured, ensureAudioUnlocked } from '../lib/tts';
 import { VisualHint } from './VisualHint';
 import { ArrowLeft, CheckCircle2, Lightbulb, Volume2 } from 'lucide-react';
@@ -73,6 +73,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   }, []);
 
   const handleType = (char: string) => {
+    initAudioContext();
     ensureAudioUnlocked();
     playSound('pop');
     if (inputVal.length < 4) {
@@ -82,6 +83,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   };
 
   const clearInput = () => {
+    initAudioContext();
     ensureAudioUnlocked();
     playSound('pop');
     setInputVal('');
@@ -89,6 +91,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   };
 
   const handleSubmit = () => {
+    initAudioContext();
     ensureAudioUnlocked();
     if (!inputVal) return;
 
@@ -152,7 +155,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
     const hasNext = currentIndexInGame >= 0 && currentIndexInGame < Worlds.length - 1;
 
     return (
-      <div className="w-full flex-1 flex flex-col items-center justify-center p-4 relative min-h-[100dvh]">
+      <div className="w-full flex-1 flex flex-col items-center justify-center p-4 relative h-full">
         <motion.div
            initial={{ scale: 0.5, opacity: 0, y: 50 }}
            animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -196,7 +199,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   }
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center bg-sky-100 p-2 sm:p-4 relative min-h-[100dvh]">
+    <div className="w-full flex-1 flex flex-col items-center bg-sky-100 p-2 sm:p-4 relative h-full">
       {/* Header / Nav */}
       <div className="w-full max-w-2xl flex items-center justify-between mb-4 sm:mb-8 z-10 pt-2 sm:pt-4">
         <button
@@ -254,7 +257,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
                 {hasTts && (
                   <button
                     type="button"
-                    onClick={() => { ensureAudioUnlocked(); speakQuestion(currentProblem); }}
+                    onClick={() => { initAudioContext(); ensureAudioUnlocked(); speakQuestion(currentProblem); }}
                     className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 active:bg-sky-300 transition-colors text-sky-600 flex-shrink-0"
                     aria-label="Lees de vraag voor"
                   >

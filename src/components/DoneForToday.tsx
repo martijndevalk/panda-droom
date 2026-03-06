@@ -15,7 +15,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
   const { trigger } = useWebHaptics();
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center justify-center p-4 bg-sky-100 min-h-[100dvh]">
+    <div className="w-full flex-1 flex flex-col items-center justify-center p-4 bg-sky-100 h-full">
       <motion.div
         initial={{ scale: 0.5, opacity: 0, y: 50 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}

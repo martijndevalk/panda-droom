@@ -29,6 +29,9 @@ let sharedAudio: HTMLAudioElement | null = null;
 /** Whether the shared audio element has been unlocked via a user gesture. */
 let audioUnlocked = false;
 
+/** Promise that resolves once the audio element is unlocked. */
+let unlockPromise: Promise<void> | null = null;
+
 /**
  * Ensure the shared Audio element exists and is "unlocked" for playback.
  *
@@ -37,27 +40,39 @@ let audioUnlocked = false;
  * achieve this without audible output.
  *
  * Call this from any user-gesture handler (click, tap) to warm it up.
+ * Returns a Promise that resolves once the unlock is complete.
  */
-export function ensureAudioUnlocked(): void {
-  if (typeof window === 'undefined') return;
-  if (audioUnlocked) return;
+export function ensureAudioUnlocked(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (audioUnlocked) return Promise.resolve();
+
+  // If an unlock is already in progress, return the existing promise
+  if (unlockPromise) return unlockPromise;
 
   if (!sharedAudio) {
     sharedAudio = new Audio();
     sharedAudio.volume = 0.9;
+    // Hint to Android that we intend to play via user interaction
+    sharedAudio.setAttribute('playsinline', '');
+    sharedAudio.setAttribute('webkit-playsinline', '');
   }
 
-  // Tiny silent MP3 — enough to satisfy Safari's autoplay unlock requirement
+  // Tiny silent MP3 — enough to satisfy Safari's/Android's autoplay unlock
   // eslint-disable-next-line max-len
   sharedAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlmKPeAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlmKPeAAAAAAAAAAAAAAAAAAAA';
-  sharedAudio.play().then(() => {
+
+  unlockPromise = sharedAudio.play().then(() => {
     sharedAudio!.pause();
     sharedAudio!.currentTime = 0;
     audioUnlocked = true;
+    unlockPromise = null;
   }).catch(() => {
     // Unlock failed — this can happen if called outside a gesture.
     // We'll retry on the next gesture.
+    unlockPromise = null;
   });
+
+  return unlockPromise ?? Promise.resolve();
 }
 
 /**
@@ -107,8 +122,8 @@ export async function speak(text: string): Promise<void> {
   // Stop any currently playing audio
   stopSpeaking();
 
-  // Ensure the shared element exists
-  ensureAudioUnlocked();
+  // Ensure the shared element exists and is unlocked (await on Android)
+  await ensureAudioUnlocked();
   if (!sharedAudio) return;
 
   try {
@@ -148,9 +163,12 @@ export async function speak(text: string): Promise<void> {
       audioCache.set(text, audioUrl);
     }
 
-    // Swap the src on the shared (already-unlocked) element and play
+    // Swap the src on the shared (already-unlocked) element and play.
+    // Android Chrome requires an explicit load() after changing src,
+    // otherwise play() may silently fail on a reused element.
     sharedAudio.src = audioUrl;
     sharedAudio.currentTime = 0;
+    sharedAudio.load();
 
     await sharedAudio.play();
   } catch (err) {

@@ -41,7 +41,7 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
   const earnedCount = stickers.filter(s => unlockedWorlds.includes(s.worldId)).length;
 
   return (
-    <div className="w-full flex-1 flex flex-col p-2 sm:p-4 md:p-8 bg-amber-100 min-h-[100svh]">
+    <div className="w-full flex-1 flex flex-col p-2 sm:p-4 md:p-8 bg-amber-100 h-full">
       <div className="flex items-center mb-4 sm:mb-6 md:mb-8 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-0">
         <button
           type="button"
