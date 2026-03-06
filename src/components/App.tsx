@@ -3,11 +3,58 @@ import { Map } from './Map';
 import { Level } from './Level';
 import { StartScreen } from './StartScreen';
 import { Treasury } from './Treasury';
+import { IntroScreen } from './IntroScreen';
+import { DoneForToday } from './DoneForToday';
 import { Worlds } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
 import { playSound } from '../lib/audio';
 
-type View = 'start' | 'map' | 'level' | 'treasury';
+type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done';
+
+/** Max levels a child can complete in one day before seeing "done for today". */
+const MAX_LEVELS_PER_DAY = 2;
+
+/** Get today's date key for daily limit tracking. */
+function getTodayKey(): string {
+  return new Date().toISOString().slice(0, 10); // "2026-03-06"
+}
+
+/** Read how many levels were completed today. */
+function getLevelsCompletedToday(): number {
+  try {
+    const data = JSON.parse(localStorage.getItem('panda-droom-daily') || '{}');
+    if (data.date === getTodayKey()) return data.count || 0;
+  } catch {}
+  return 0;
+}
+
+/** Record a level completion for today. */
+function recordLevelCompletion(): number {
+  const todayKey = getTodayKey();
+  const current = getLevelsCompletedToday();
+  const newCount = current + 1;
+  localStorage.setItem('panda-droom-daily', JSON.stringify({ date: todayKey, count: newCount }));
+  return newCount;
+}
+
+/** Check if a world's intro has been seen. */
+function hasSeenIntro(worldId: string): boolean {
+  try {
+    const seen = JSON.parse(localStorage.getItem('panda-droom-intros') || '[]');
+    return seen.includes(worldId);
+  } catch { return false; }
+}
+
+/** Mark a world's intro as seen. */
+function markIntroSeen(worldId: string): void {
+  try {
+    const seen = JSON.parse(localStorage.getItem('panda-droom-intros') || '[]');
+    if (!seen.includes(worldId)) {
+      seen.push(worldId);
+      localStorage.setItem('panda-droom-intros', JSON.stringify(seen));
+    }
+  } catch {}
+}
 
 export default function App() {
   const [view, setView] = useState<View>(() => {
@@ -25,10 +72,10 @@ export default function App() {
   });
   const [currentWorldId, setCurrentWorldId] = useState<string | null>(null);
 
-  // Starting with world-1 unlocked.
-  const [unlockedWorlds, setUnlockedWorlds] = useState<string[]>(['world-1']);
+  // Starting with first table unlocked
+  const [unlockedWorlds, setUnlockedWorlds] = useState<string[]>([Worlds[0].id]);
 
-  // Optionally persist progress to localStorage
+  // Load saved progress
   useEffect(() => {
     const saved = localStorage.getItem('panda-droom-unlocked');
     if (saved) {
@@ -53,6 +100,21 @@ export default function App() {
   const handleSelectWorld = (id: string) => {
     playSound('pop');
     setCurrentWorldId(id);
+
+    const world = Worlds.find(w => w.id === id);
+    // Show intro if this world has one and it hasn't been seen yet
+    if (world?.hasIntro && !hasSeenIntro(id)) {
+      setView('intro');
+    } else {
+      setView('level');
+    }
+  };
+
+  const handleIntroComplete = () => {
+    if (currentWorldId) {
+      markIntroSeen(currentWorldId);
+    }
+    playSound('pop');
     setView('level');
   };
 
@@ -69,13 +131,31 @@ export default function App() {
       }
     }
 
+    // Record daily completion and check limit
+    const completedToday = recordLevelCompletion();
+
+    if (completedToday >= MAX_LEVELS_PER_DAY) {
+      // Show "done for today" screen
+      setView('done');
+      setCurrentWorldId(null);
+      return;
+    }
+
     if (action === 'next' && nextWorldId) {
       setCurrentWorldId(nextWorldId);
+      const nextWorld = Worlds.find(w => w.id === nextWorldId);
+      if (nextWorld?.hasIntro && !hasSeenIntro(nextWorldId)) {
+        setView('intro');
+      } else {
+        setView('level');
+      }
     } else {
       setView('map');
       setCurrentWorldId(null);
     }
   };
+
+  const currentWorld = currentWorldId ? Worlds.find(w => w.id === currentWorldId) : null;
 
   return (
     <div className="w-full min-h-[100dvh] flex flex-col relative">
@@ -109,19 +189,49 @@ export default function App() {
           </motion.div>
         )}
 
+        {view === 'intro' && currentWorld && (
+          <motion.div
+            key="intro"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="w-full flex-1 flex flex-col relative bg-sky-100"
+          >
+            <IntroScreen
+              table={currentWorld.table}
+              onComplete={handleIntroComplete}
+            />
+          </motion.div>
+        )}
+
         {view === 'level' && currentWorldId && (
           <motion.div
             key="level"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="w-full flex-1 flex flex-col relative bg-sky-100" // To prevent white flash
+            className="w-full flex-1 flex flex-col relative bg-sky-100"
           >
             <Level
               key={currentWorldId}
               worldId={currentWorldId}
               onBack={() => { playSound('pop'); setView('map'); }}
               onComplete={handleLevelComplete}
+            />
+          </motion.div>
+        )}
+
+        {view === 'done' && (
+          <motion.div
+            key="done"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="w-full flex-1 flex flex-col relative bg-sky-100"
+          >
+            <DoneForToday
+              playerName={playerName}
+              onBackToMap={() => { playSound('pop'); setView('map'); }}
             />
           </motion.div>
         )}
@@ -140,9 +250,11 @@ export default function App() {
               onBack={() => { playSound('pop'); setView('map'); }}
               onReset={() => {
                 setPlayerName('');
-                setUnlockedWorlds(['world-1']);
+                setUnlockedWorlds([Worlds[0].id]);
                 localStorage.removeItem('panda-droom-player-name');
                 localStorage.removeItem('panda-droom-unlocked');
+                localStorage.removeItem('panda-droom-daily');
+                localStorage.removeItem('panda-droom-intros');
                 setView('start');
               }}
             />

@@ -1,5 +1,6 @@
-import { Star, Award, Gift, ArrowLeft, Heart, Sparkles, LockKeyholeOpen } from 'lucide-react';
+import { Star, Award, Gift, ArrowLeft, Heart, Sparkles, LockKeyholeOpen, Gem, Flame, Zap, Crown, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Worlds } from '../lib/GameData';
 import { useWebHaptics } from 'web-haptics/react';
 
 interface TreasuryProps {
@@ -9,22 +10,41 @@ interface TreasuryProps {
   onReset: () => void;
 }
 
+/** Sticker icons and names for each table in learning order. */
+const STICKER_CONFIG = [
+  { title: 'Starter', icon: Star, color: 'text-yellow-500' },
+  { title: 'Verkenner', icon: Zap, color: 'text-blue-500' },
+  { title: 'Rekenwonder', icon: Award, color: 'text-purple-500' },
+  { title: 'Slimmerik', icon: Sparkles, color: 'text-cyan-500' },
+  { title: 'Doorzetter', icon: Heart, color: 'text-red-500' },
+  { title: 'Doorbreker', icon: Flame, color: 'text-orange-500' },
+  { title: 'Ster', icon: Crown, color: 'text-amber-500' },
+  { title: 'Held', icon: Shield, color: 'text-green-500' },
+  { title: 'Kampioen', icon: Gem, color: 'text-pink-500' },
+  { title: 'Meester', icon: Award, color: 'text-indigo-500' },
+];
+
 export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, onBack, onReset }) => {
   const { trigger } = useWebHaptics();
 
-  const stickers = [
-    { title: "Verkenner", icon: <Star size={40} className="text-yellow-500 fill-current" />, req: 'world-1' },
-    { title: "Rekenwonder", icon: <Award size={40} className="text-purple-500 fill-current" />, req: 'world-2' },
-    { title: "Tafel Topper", icon: <Heart size={40} className="text-red-500 fill-current" />, req: 'world-3' },
-    { title: "Meester", icon: <Sparkles size={40} className="text-blue-500 fill-current" />, req: 'world-4' }
-  ];
+  const stickers = Worlds.map((world, i) => {
+    const config = STICKER_CONFIG[i] || STICKER_CONFIG[0];
+    const IconComponent = config.icon;
+    return {
+      title: config.title,
+      tableLabel: `Tafel van ${world.table}`,
+      icon: <IconComponent size={36} className={`${config.color} fill-current`} />,
+      worldId: world.id,
+    };
+  });
 
-  const earned = stickers.filter(s => unlockedWorlds.includes(s.req));
+  const earnedCount = stickers.filter(s => unlockedWorlds.includes(s.worldId)).length;
 
   return (
     <div className="w-full flex-1 flex flex-col p-2 sm:p-4 md:p-8 bg-amber-100 min-h-[100svh]">
       <div className="flex items-center mb-4 sm:mb-6 md:mb-8 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-0">
         <button
+          type="button"
           onClick={() => {
             trigger('nudge');
             onBack();
@@ -38,23 +58,33 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-6 sm:mb-12">
+      {/* Progress display */}
+      <div className="bg-white rounded-2xl p-4 mb-4 sm:mb-6 text-center border-2 border-amber-200 shadow">
+        <p className="text-lg sm:text-xl font-bold text-amber-800">
+          {earnedCount} van {stickers.length} stickers verdiend! 🌟
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-12">
         {stickers.map((s, i) => {
-          const isUnlocked = unlockedWorlds.includes(s.req);
+          const isUnlocked = unlockedWorlds.includes(s.worldId);
           return (
             <motion.div
               key={i}
               whileHover={{ scale: isUnlocked ? 1.05 : 1 }}
-              className={`p-3 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl border-2 sm:border-4 flex flex-col items-center gap-2 sm:gap-4 text-center ${
+              className={`p-3 sm:p-4 rounded-[1.25rem] sm:rounded-[1.5rem] shadow-xl border-2 sm:border-3 flex flex-col items-center gap-2 text-center ${
                 isUnlocked ? 'bg-white border-yellow-400' : 'bg-gray-200 border-gray-300 opacity-60'
               }`}
             >
-              <div className="bg-amber-100 p-3 sm:p-6 rounded-full shadow-inner">
-                {isUnlocked ? s.icon : <Star size={40} className="text-gray-400" />}
+              <div className="bg-amber-100 p-3 sm:p-4 rounded-full shadow-inner">
+                {isUnlocked ? s.icon : <Star size={36} className="text-gray-400" />}
               </div>
-              <h3 className={`text-xl font-bold ${isUnlocked ? 'text-amber-800' : 'text-gray-500'}`}>
-                {isUnlocked ? s.title : 'Verborgen'}
+              <h3 className={`text-sm sm:text-base font-bold leading-tight ${isUnlocked ? 'text-amber-800' : 'text-gray-500'}`}>
+                {isUnlocked ? s.title : '???'}
               </h3>
+              <p className={`text-xs sm:text-sm font-medium ${isUnlocked ? 'text-amber-600' : 'text-gray-400'}`}>
+                {isUnlocked ? s.tableLabel : 'Verborgen'}
+              </p>
             </motion.div>
           );
         })}
@@ -66,6 +96,7 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
             <LockKeyholeOpen /> Speciale Ouders Sectie
           </h2>
           <button
+            type="button"
             onClick={() => {
               const pwd = window.prompt(`Voer het ouder wachtwoord in om de voortgang van ${playerName} te resetten:`);
               if (pwd === 'panda') {
@@ -80,13 +111,14 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
           </button>
         </div>
         <p className="text-lg text-amber-800 mb-4">
-          Heeft de Panda weer een nieuwe wereld behaald? Dan mag daar natuurlijk een *echte* beloning tegenover staan!
+          Heeft de Panda weer een nieuwe tafel behaald? Dan mag daar natuurlijk een <em>echte</em> beloning tegenover staan!
         </p>
-        <ul className="list-disc pl-6 space-y-2 text-amber-900 text-lg font-medium">
-          <li>1 wereld uitgespeeld = 15 minuten extra digitale speeltijd</li>
-          <li>2 werelden uitgespeeld = Samen een spelletje kiezen</li>
-          <li>3 werelden uitgespeeld = Pannenkoeken eten!</li>
-          <li>4 werelden uitgespeeld = Een extra verhaaltje voor het slapengaan</li>
+        <ul className="list-disc pl-6 space-y-2 text-amber-900 text-base sm:text-lg font-medium">
+          <li>2 tafels uitgespeeld = 15 minuten extra digitale speeltijd</li>
+          <li>4 tafels uitgespeeld = Samen een spelletje kiezen</li>
+          <li>6 tafels uitgespeeld = Pannenkoeken eten!</li>
+          <li>8 tafels uitgespeeld = Samen naar de speeltuin</li>
+          <li>Alle 10 tafels = Een heel speciaal cadeau! 🎁</li>
         </ul>
       </div>
     </div>

@@ -12,11 +12,25 @@ const { title } = Astro.props;
 <html lang="nl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Leer tafels met Panda! Een vriendelijke reken-app voor kinderen." />
+    <meta name="theme-color" content="#38bdf8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Panda Droom" />
+    <link rel="icon" type="image/svg+xml" href="/panda-droom/favicon.svg" />
+    <link rel="apple-touch-icon" href="/panda-droom/panda-icon-512.png" />
+    <link rel="manifest" href="/panda-droom/manifest.json" />
     <title>{title}</title>
   </head>
   <body class="m-0 p-0 bg-light select-none font-bubble flex flex-col min-h-[100dvh]">
     <slot />
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/panda-droom/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

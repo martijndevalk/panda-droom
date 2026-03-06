@@ -1,0 +1,25 @@
+{
+  "name": "Panda's Getallenreis",
+  "short_name": "Panda Droom",
+  "description": "Leer tafels met Panda! Een vriendelijke reken-app voor kinderen.",
+  "start_url": "/panda-droom/",
+  "scope": "/panda-droom/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e0f2fe",
+  "theme_color": "#38bdf8",
+  "lang": "nl",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "panda-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

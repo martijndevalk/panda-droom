@@ -1,7 +1,4 @@
-import { Howl } from 'howler';
-
-// A simple beep sound using base64 for simplicity, or we can use web audio API
-// Actually, using web Audio API is lighter and requires no assets.
+// Lightweight sound effects using Web Audio API (no external dependencies).
 
 let audioCtx: AudioContext | null = null;
 
