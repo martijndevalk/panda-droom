@@ -4,7 +4,7 @@ import { Worlds, MathProblem } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { playSound } from '../lib/audio';
-import { speak, stopSpeaking, isTtsConfigured } from '../lib/tts';
+import { speak, stopSpeaking, isTtsConfigured, ensureAudioUnlocked } from '../lib/tts';
 import { VisualHint } from './VisualHint';
 import { ArrowLeft, CheckCircle2, Lightbulb, Volume2 } from 'lucide-react';
 import { useWebHaptics } from 'web-haptics/react';
@@ -73,6 +73,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   }, []);
 
   const handleType = (char: string) => {
+    ensureAudioUnlocked();
     playSound('pop');
     if (inputVal.length < 4) {
       setInputVal(prev => prev + char);
@@ -81,12 +82,14 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
   };
 
   const clearInput = () => {
+    ensureAudioUnlocked();
     playSound('pop');
     setInputVal('');
     setPandaState('idle');
   };
 
   const handleSubmit = () => {
+    ensureAudioUnlocked();
     if (!inputVal) return;
 
     const isCorrect = parseInt(inputVal) === currentProblem.answer;
@@ -251,7 +254,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, onBack, onComplete }) => 
                 {hasTts && (
                   <button
                     type="button"
-                    onClick={() => speakQuestion(currentProblem)}
+                    onClick={() => { ensureAudioUnlocked(); speakQuestion(currentProblem); }}
                     className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 active:bg-sky-300 transition-colors text-sky-600 flex-shrink-0"
                     aria-label="Lees de vraag voor"
                   >

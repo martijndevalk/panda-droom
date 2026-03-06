@@ -13,8 +13,52 @@
 /** Cache: question text → Object URL pointing to the audio blob. */
 const audioCache = new Map<string, string>();
 
-/** Currently playing audio element (so we can stop it if needed). */
-let currentAudio: HTMLAudioElement | null = null;
+/**
+ * Shared Audio element — reused across all TTS playback.
+ *
+ * Mobile browsers (iOS Safari, Android Chrome) require that `audio.play()`
+ * is called on an element that was "unlocked" by a prior user gesture.
+ * Creating `new Audio()` each time and calling `.play()` after an async
+ * `fetch()` breaks the gesture chain and gets blocked silently.
+ *
+ * By reusing a single element that is unlocked on the first tap/click,
+ * subsequent `.play()` calls succeed even after async work.
+ */
+let sharedAudio: HTMLAudioElement | null = null;
+
+/** Whether the shared audio element has been unlocked via a user gesture. */
+let audioUnlocked = false;
+
+/**
+ * Ensure the shared Audio element exists and is "unlocked" for playback.
+ *
+ * iOS Safari requires an actual `.play()` call within a user-gesture
+ * handler to unlock an Audio element. We play a tiny silent MP3 to
+ * achieve this without audible output.
+ *
+ * Call this from any user-gesture handler (click, tap) to warm it up.
+ */
+export function ensureAudioUnlocked(): void {
+  if (typeof window === 'undefined') return;
+  if (audioUnlocked) return;
+
+  if (!sharedAudio) {
+    sharedAudio = new Audio();
+    sharedAudio.volume = 0.9;
+  }
+
+  // Tiny silent MP3 — enough to satisfy Safari's autoplay unlock requirement
+  // eslint-disable-next-line max-len
+  sharedAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlmKPeAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYlmKPeAAAAAAAAAAAAAAAAAAAA';
+  sharedAudio.play().then(() => {
+    sharedAudio!.pause();
+    sharedAudio!.currentTime = 0;
+    audioUnlocked = true;
+  }).catch(() => {
+    // Unlock failed — this can happen if called outside a gesture.
+    // We'll retry on the next gesture.
+  });
+}
 
 /**
  * ElevenLabs voice for Dutch text-to-speech.
@@ -63,6 +107,10 @@ export async function speak(text: string): Promise<void> {
   // Stop any currently playing audio
   stopSpeaking();
 
+  // Ensure the shared element exists
+  ensureAudioUnlocked();
+  if (!sharedAudio) return;
+
   try {
     let audioUrl = audioCache.get(text);
 
@@ -100,11 +148,11 @@ export async function speak(text: string): Promise<void> {
       audioCache.set(text, audioUrl);
     }
 
-    const audio = new Audio(audioUrl);
-    audio.volume = 0.9;
-    currentAudio = audio;
+    // Swap the src on the shared (already-unlocked) element and play
+    sharedAudio.src = audioUrl;
+    sharedAudio.currentTime = 0;
 
-    await audio.play();
+    await sharedAudio.play();
   } catch (err) {
     console.error('[TTS] Failed to speak:', err);
   }
@@ -112,10 +160,9 @@ export async function speak(text: string): Promise<void> {
 
 /** Stop any currently playing TTS audio. */
 export function stopSpeaking(): void {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
+  if (sharedAudio) {
+    sharedAudio.pause();
+    sharedAudio.currentTime = 0;
   }
 }
 
