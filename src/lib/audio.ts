@@ -184,4 +184,19 @@ if (typeof window !== 'undefined') {
       playSound('pop');
     }
   }, { capture: true }); // Use capture phase so it runs before React handlers
+
+  // Handle PWA going to background/closing to stop music
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      Howler.mute(true);
+      if (bgmAudio && bgmAudio.playing()) {
+        bgmAudio.pause();
+      }
+    } else {
+      Howler.mute(false);
+      if (bgmEnabled && bgmStarted && bgmAudio && !bgmAudio.playing()) {
+        bgmAudio.play();
+      }
+    }
+  });
 }

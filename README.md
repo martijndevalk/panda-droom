@@ -9,14 +9,17 @@ Een vriendelijke, stressvrije reken-app waarmee kinderen de tafels van vermenigv
 ## ✨ Kenmerken
 
 - **Stressvrij leren** — geen countdown-timers of negatieve scores. Kinderen leren op hun eigen tempo.
-- **Visuele hints (Concreet → Pictoraal → Abstract)** — bij een fout antwoord verschijnt een visuele ondersteuning die helpt om de som te begrijpen.
+- **Interactieve Panda Avatar** — een levendige panda die reageert op antwoorden met animaties en uitdrukkingen (blije ogen, "denkende" animaties bij invoer, en "X"-oogjes bij een foutje).
+- **Visuele hints (Concreet → Pictoraal → Abstract)** — bij een fout antwoord of via de hint-knop verschijnt visuele ondersteuning die helpt om de som te begrijpen.
 - **Slimme tafelvolgorde** — start met de makkelijkste tafels (1, 10, 2, 5) en bouwt op naar moeilijkere (7, 8, 9).
-- **Dagelijkse sessielimiet** — maximaal 2 levels per dag om overbelasting te voorkomen.
-- **Intro-systeem** — elk nieuw wereld krijgt een introductie.
-- **Text-to-Speech** — sommen worden voorgelezen via [ElevenLabs](https://elevenlabs.io/) (optioneel).
-- **Geluidseffecten** — subtiele audio-feedback via de Web Audio API (geen externe bestanden nodig).
+- **Dagelijkse sessielimiet** — maximaal 2 levels per dag om overbelasting te voorkomen en de focus te behouden.
+- **Intro-systeem** — elke nieuwe wereld krijgt een introductie die het concept van vermenigvuldigen uitlegt.
+- **Text-to-Speech** — sommen worden voorgelezen via [ElevenLabs](https://elevenlabs.io/) (optioneel), wat helpt bij kinderen met leesproblemen.
+- **Haptische Feedback** — voelbare trillingen op ondersteunde mobiele apparaten bij succes of fouten.
+- **Geluidseffecten & BGM** — subtiele audio-feedback en achtergrondmuziek die in/uitgeschakeld kan worden.
+- **Naadloze Navigatie** — gebruik van Astro View Transitions voor vloeiende overgangen tussen schermen.
 - **PWA-ondersteuning** — installeerbaar op telefoon en tablet, werkt offline via een Service Worker.
-- **Confetti & animaties** — visuele beloningen met `canvas-confetti` en `motion` (Framer Motion).
+- **Confetti & Beloningen** — visuele beloningen en een beloningssysteem met "milestones".
 
 ---
 
@@ -24,11 +27,13 @@ Een vriendelijke, stressvrije reken-app waarmee kinderen de tafels van vermenigv
 
 | Tool | Doel |
 |---|---|
-| [Astro](https://astro.build/) 5 | Statische site-generator, hosting via GitHub Pages |
-| [React](https://react.dev/) 18 | UI-componenten (client-side rendering) |
+| [Astro](https://astro.build/) 5 | Framework, Routing & View Transitions |
+| [React](https://react.dev/) 18 | UI-componenten & State management |
 | [Tailwind CSS](https://tailwindcss.com/) 3 | Utility-first styling |
-| [Motion](https://motion.dev/) (Framer Motion) | Animaties en page-transitions |
-| [Howler.js](https://howlerjs.com/) | Audio playback |
+| [DaisyUI](https://daisyui.com/) 5 | Componenten & Thema's |
+| [Motion](https://motion.dev/) | Animaties (Framer Motion) |
+| [Howler.js](https://howlerjs.com/) | Audio playback & BGM |
+| [Web Haptics](https://github.com/vlad-stoenescu/web-haptics) | Haptische feedback |
 | [Lucide React](https://lucide.dev/) | Iconen |
 | [canvas-confetti](https://github.com/catdad/canvas-confetti) | Confetti-effecten |
 | [ElevenLabs API](https://elevenlabs.io/) | Text-to-Speech (optioneel) |
@@ -95,26 +100,22 @@ panda-droom/
 ├── src/
 │   ├── components/          # React-componenten
 │   │   ├── App.tsx          # Hoofd-app met routing en state management
-│   │   ├── StartScreen.tsx  # Naamkeuze bij eerste bezoek
+│   │   ├── PandaAvatar.tsx  # Geanimeerde panda SVG
 │   │   ├── Map.tsx          # Wereldkaart met tafels
-│   │   ├── IntroScreen.tsx  # CPA-introductie per wereld
 │   │   ├── Level.tsx        # De kernspel-loop (sommen beantwoorden)
-│   │   ├── Numpad.tsx       # On-screen numpad
-│   │   ├── VisualHint.tsx   # Visuele hints bij fouten
-│   │   ├── Treasury.tsx     # Schatkamer / overzicht
-│   │   └── DoneForToday.tsx # Dagelijkse limiet bereikt
+│   │   ├── VisualHint.tsx   # Visuele hints (CPA methode)
+│   │   └── ...
 │   ├── layouts/
 │   │   └── Layout.astro     # HTML-layout met meta tags en PWA-registratie
 │   ├── lib/
 │   │   ├── GameData.ts      # Wereld- en somdefinities
-│   │   ├── audio.ts         # Geluidseffecten (Web Audio API)
-│   │   └── tts.ts           # ElevenLabs Text-to-Speech
+│   │   ├── audio.ts         # Geluidseffecten & BGM management
+│   │   └── tts.ts           # ElevenLabs Text-to-Speech integratie
 │   ├── pages/
-│   │   └── index.astro      # Entrypoint
-│   └── styles/              # CSS (Tailwind, thema, fonts)
+│   │   └── index.astro      # Entrypoint (Astro page)
+│   └── styles/              # CSS (Tailwind, thema, fonts via Fontsource)
 ├── astro.config.mjs         # Astro configuratie
-├── tailwind.config.mjs      # Tailwind configuratie
-├── vite.config.ts           # Vite configuratie
+├── tailwind.config.mjs      # Tailwind & DaisyUI configuratie
 └── package.json
 ```
 
