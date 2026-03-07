@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Star } from 'lucide-react';
 
 export const REWARDS_THRESHOLDS = [
   { count: 2, label: '15 minuten extra digitale speeltijd' },
@@ -13,16 +14,34 @@ interface RewardProgressBarProps {
   earnedCount: number;
   totalCount: number;
   className?: string;
+  onOpenTreasury?: () => void;
 }
 
-export const RewardProgressBar: React.FC<RewardProgressBarProps> = ({ earnedCount, totalCount, className = '' }) => {
+export const RewardProgressBar: React.FC<RewardProgressBarProps> = ({ earnedCount, totalCount, className = '', onOpenTreasury }) => {
   return (
-    <div className={`bg-white rounded-2xl p-4 sm:p-6 text-center border-2 border-amber-200 shadow-lg ${className}`}>
-      <p className="text-lg sm:text-xl font-bold text-amber-800 mb-3 sm:mb-4">
-        {earnedCount} van {totalCount} stickers verdiend! 🌟
-      </p>
+    <div className={`bg-white rounded-[2rem] p-4 sm:p-6 text-center border-4 border-dark shadow-[6px_6px_0px_theme(colors.dark)] ${className}`}>
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between mb-3 sm:mb-4 gap-3">
+        <p className="title-font text-lg sm:text-xl font-black text-amber-800 m-0">
+          {earnedCount} van {totalCount} stickers verdiend! 🌟
+        </p>
 
-      <div className="relative w-full h-6 sm:h-8 bg-amber-100 rounded-full mb-3 sm:mb-4 border-2 border-amber-300 overflow-hidden">
+        {onOpenTreasury && (
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.6 }}
+            whileHover={{ scale: 1.05, rotate: [0, -3, 3, 0] }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onOpenTreasury}
+            className="btn bg-amber-400 hover:bg-amber-500 text-amber-950 btn-lg h-auto px-4 py-3 md:px-6 md:py-4 rounded-2xl flex items-center gap-2 border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] shrink-0 sm:self-start w-full sm:w-auto justify-center"
+          >
+            <Star className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+            Schatkist
+          </motion.button>
+        )}
+      </div>
+
+      <div className="relative w-full h-6 sm:h-8 bg-amber-100 rounded-full mb-3 sm:mb-4 border-4 border-dark shadow-[inset_0px_[-4px]_0px_rgba(0,0,0,0.1)] overflow-hidden">
         {/* Base progress fill */}
         <motion.div
           className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full z-0 origin-left"

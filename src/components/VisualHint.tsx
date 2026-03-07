@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { speak, ensureAudioUnlocked } from '../lib/tts';
+import { initAudioContext } from '../lib/audio';
 
 interface VisualHintProps {
   factors: [number, number];
@@ -16,6 +18,24 @@ interface VisualHintProps {
  */
 export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
   const [groups, dotsPerGroup] = factors;
+  const hasSpokenRef = useRef(false);
+
+  const handleSpeak = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    speak(`Hint! ${groups} groepjes van ${dotsPerGroup}. Tel de bolletjes of gebruik de getallen!`);
+  };
+
+  useEffect(() => {
+    if (visible && !hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const timer = setTimeout(() => handleSpeak(), 400);
+      return () => clearTimeout(timer);
+    }
+    if (!visible) {
+      hasSpokenRef.current = false;
+    }
+  }, [visible, groups, dotsPerGroup]);
 
   return (
     <AnimatePresence>
@@ -32,22 +52,24 @@ export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
             animate={{ scale: 1 }}
             exit={{ scale: 0.8 }}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl border-4 border-sky-300 max-w-md w-full max-h-[80vh] overflow-y-auto relative"
+            className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark max-w-md w-full max-h-[80vh] overflow-y-auto relative"
           >
             {/* Close button */}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 border-2 border-dark text-dark transition-colors shadow-[2px_2px_0px_theme(colors.dark)]"
               aria-label="Hint sluiten"
             >
               <X size={20} />
             </button>
 
             {/* Title */}
-            <h3 className="text-2xl sm:text-3xl font-bold text-sky-600 text-center mb-2">
-              💡 Hint
-            </h3>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h3 className="text-2xl sm:text-3xl font-bold text-sky-600">
+                💡 Hint
+              </h3>
+            </div>
             <p className="text-lg text-gray-600 text-center mb-6 font-medium">
               {groups} groepjes van {dotsPerGroup}
             </p>

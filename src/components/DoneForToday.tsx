@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
+
 import { useWebHaptics } from 'web-haptics/react';
+import { PandaAvatar } from './PandaAvatar';
+import { speak, stopSpeaking, ensureAudioUnlocked } from '../lib/tts';
+import { initAudioContext, playSound } from '../lib/audio';
 
 interface DoneForTodayProps {
   playerName: string;
@@ -13,6 +17,26 @@ interface DoneForTodayProps {
  */
 export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
   const { trigger } = useWebHaptics();
+  const hasSpokenRef = useRef(false);
+
+  const handleSpeak = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    playSound('cheer');
+    speak(`Super gedaan! Goed bezig, ${playerName}! Je bent klaar voor vandaag. Morgen weer een beetje oefenen!`);
+  };
+
+  useEffect(() => {
+    if (!hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const timer = setTimeout(() => handleSpeak(), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [playerName]);
+
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
 
   return (
     <div className="w-full flex-1 flex flex-col items-center justify-center p-4 bg-sky-100 h-full">
@@ -20,7 +44,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
         initial={{ scale: 0.93, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-        className="bg-white p-8 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl flex flex-col items-center max-w-sm w-full text-center border-4 border-green-300"
+        className="bg-white p-8 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-[8px_8px_0px_theme(colors.dark)] border-4 border-dark flex flex-col items-center max-w-sm w-full text-center"
       >
         {/* Gently bobbing panda */}
         <motion.div
@@ -28,7 +52,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           className="w-24 h-24 sm:w-32 sm:h-32 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner relative"
         >
-          <span className="text-6xl sm:text-7xl">🐼</span>
+          <PandaAvatar className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-sm z-10" />
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 6, ease: 'linear' }}
@@ -36,14 +60,16 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
           />
         </motion.div>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-3xl sm:text-4xl font-black text-green-600 mb-4 tracking-tight drop-shadow-sm"
-        >
-          Super gedaan!
-        </motion.h2>
+        <div className="flex items-center gap-2 mb-4 mt-2">
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-3xl sm:text-4xl font-black text-green-600 tracking-tight drop-shadow-sm"
+          >
+            Super gedaan!
+          </motion.h2>
+        </div>
 
         <motion.p
           initial={{ opacity: 0 }}
@@ -71,7 +97,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
             trigger('success');
             onBackToMap();
           }}
-          className="w-full py-4 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-[0_6px_0_0_#166534] active:shadow-[0_0px_0_0_#166534] active:translate-y-[6px] transition-all"
+          className="btn btn-success btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-all"
         >
           Terug naar de kaart 🗺️
         </motion.button>

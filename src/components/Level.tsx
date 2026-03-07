@@ -6,8 +6,9 @@ import confetti from 'canvas-confetti';
 import { playSound, initAudioContext } from '../lib/audio';
 import { speak, stopSpeaking, isTtsConfigured, ensureAudioUnlocked } from '../lib/tts';
 import { VisualHint } from './VisualHint';
-import { CheckCircle2, Lightbulb, Volume2, Gift, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Lightbulb, Gift, ArrowLeft } from 'lucide-react';
 import { useWebHaptics } from 'web-haptics/react';
+import { PandaAvatar } from './PandaAvatar';
 
 /** Reward milestones: number of completed tables → reward text. */
 const REWARD_MILESTONES: { threshold: number; emoji: string; text: string }[] = [
@@ -32,9 +33,10 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   const [currentIndex, setCurrentIndex] = useState(0);
   const [inputVal, setInputVal] = useState('');
   const [feedback, setFeedback] = useState<'none' | 'success' | 'shake'>('none');
-  const [pandaState, setPandaState] = useState<'idle' | 'happy' | 'thinking'>('idle');
+  const [pandaState, setPandaState] = useState<'idle' | 'happy' | 'thinking' | 'error'>('idle');
   const [isLevelComplete, setIsLevelComplete] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [hasSpokenComplete, setHasSpokenComplete] = useState(false);
 
   const hasTts = isTtsConfigured();
   const hasSpokenRef = useRef<Set<number>>(new Set());
@@ -42,6 +44,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   useEffect(() => {
     setSequence(world.generateSequence());
     hasSpokenRef.current = new Set();
+    setHasSpokenComplete(false);
   }, [world]);
 
   const currentProblem = sequence[currentIndex];
@@ -81,6 +84,33 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   useEffect(() => {
     return () => stopSpeaking();
   }, []);
+
+  // Speak completion text when isLevelComplete becomes true
+  useEffect(() => {
+    if (isLevelComplete && !hasSpokenComplete) {
+      setHasSpokenComplete(true);
+
+      const currentIndexInGame = Worlds.findIndex(w => w.id === worldId);
+      const completedCount = unlockedWorlds.filter(id => {
+        const idx = Worlds.findIndex(w => w.id === id);
+        return idx >= 0 && idx <= currentIndexInGame;
+      }).length;
+
+      const earnedMilestone = REWARD_MILESTONES.filter(m => m.threshold <= completedCount).pop();
+      const justEarnedMilestone = earnedMilestone && earnedMilestone.threshold === completedCount
+        ? earnedMilestone
+        : null;
+
+      initAudioContext();
+      ensureAudioUnlocked();
+
+      let text = `Geweldig! Je hebt de tafel van ${world.table} gehaald! Plus 1 Bamboetak.`;
+      if (justEarnedMilestone) {
+        text += ` Beloning verdiend! ${justEarnedMilestone.text}.`;
+      }
+      setTimeout(() => speak(text), 400);
+    }
+  }, [isLevelComplete, hasSpokenComplete, world.table, worldId, unlockedWorlds]);
 
   const handleType = (char: string) => {
     initAudioContext();
@@ -136,16 +166,18 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             origin: { y: 0.5 },
           });
           setTimeout(() => {
-            playSound('success');
+            playSound('cheer');
             setIsLevelComplete(true);
           }, 1000);
         }
       }, 1000);
     } else {
-      // Gentle error: shake the input, then clear it so they can try again
+      // Gentle error: shake the input, X eyes, then clear so they can try again
       setFeedback('shake');
+      setPandaState('error');
       trigger('error');
-      // No negative sound — just a gentle shake
+      playSound('fail');
+      speak('Probeer het nog eens, je kan het!');
 
       setTimeout(() => {
         setFeedback('none');
@@ -183,11 +215,24 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       : null;
 
     return (
-      <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center p-4 relative overflow-y-auto">
+      <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center p-4 relative overflow-y-auto bg-sky-200">
+        {/* ☀️ Sun */}
+        <div className="sun sun--sm absolute top-4 right-6" />
+
+        {/* ☁️ Decorative clouds */}
+        <div className="cloud cloud--lg absolute opacity-50" style={{ top: '6%', left: '5%' }} />
+        <div className="cloud cloud--md absolute opacity-55" style={{ top: '15%', right: '20%' }} />
+        <div className="cloud cloud--sm absolute opacity-45" style={{ top: '10%', left: '40%' }} />
+        <div className="cloud cloud--xl absolute opacity-35" style={{ top: '30%', left: '2%' }} />
+        <div className="cloud cloud--md absolute opacity-50" style={{ top: '22%', right: '5%' }} />
+        <div className="cloud cloud--sm absolute opacity-60" style={{ bottom: '20%', right: '10%' }} />
+        <div className="cloud cloud--lg absolute opacity-40" style={{ bottom: '10%', left: '15%' }} />
+        <div className="cloud cloud--md absolute opacity-45" style={{ bottom: '30%', left: '50%' }} />
+
         <motion.div
            initial={{ scale: 0.5, opacity: 0, y: 50 }}
            animate={{ scale: 1, opacity: 1, y: 0 }}
-           className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl flex flex-col items-center max-w-sm w-full text-center border-4 border-sky-300"
+           className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] max-w-sm w-full text-center border-4 border-dark shadow-[8px_8px_0px_theme(colors.dark)] flex flex-col items-center relative z-10"
         >
           <div className="w-24 h-24 sm:w-32 sm:h-32 bg-yellow-100 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-inner relative">
             <span className="text-6xl sm:text-8xl">🎋</span>
@@ -197,7 +242,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               className="absolute inset-0 border-4 border-dashed border-yellow-400 rounded-full z-0 opacity-50"
             />
           </div>
-          <h2 className="text-4xl sm:text-5xl font-black text-sky-600 mb-3 sm:mb-4 tracking-tight drop-shadow-sm">Geweldig!</h2>
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <h2 className="title-font text-4xl sm:text-5xl font-black text-sky-600 tracking-tight drop-shadow-sm">Geweldig!</h2>
+          </div>
           <p className="text-xl sm:text-2xl text-gray-700 mb-4 sm:mb-6 font-medium">
             Je hebt de tafel van {world.table} gehaald! <br/>
             <strong className="text-green-500 font-extrabold text-2xl sm:text-3xl mt-2 block drop-shadow-sm">+ 1 Bamboetak!</strong>
@@ -237,7 +284,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               <button
                 type="button"
                 onClick={() => { trigger('success'); onComplete(worldId, 'next'); }}
-                className="w-full py-4 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-[0_6px_0_0_#166534] active:shadow-[0_0px_0_0_#166534] active:translate-y-[6px] transition-all"
+                className="btn btn-success btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
               >
                 Volgend Level
               </button>
@@ -245,7 +292,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             <button
               type="button"
               onClick={() => { trigger('nudge'); onComplete(worldId, 'map'); }}
-              className="w-full py-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-[0_6px_0_0_#075985] active:shadow-[0_0px_0_0_#075985] active:translate-y-[6px] transition-all"
+              className="btn btn-info btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] mt-2"
             >
               Terug naar Map
             </button>
@@ -256,7 +303,20 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   }
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col items-center bg-sky-100 p-2 sm:p-4 relative">
+    <div className="w-full flex-1 min-h-0 flex flex-col items-center bg-sky-200 p-2 sm:p-4 relative overflow-y-auto overflow-x-hidden">
+      {/* ☀️ Sun */}
+      <div className="sun sun--sm absolute top-4 right-6" />
+
+      {/* ☁️ Decorative clouds */}
+      <div className="cloud cloud--lg absolute opacity-50" style={{ top: '6%', left: '5%' }} />
+      <div className="cloud cloud--md absolute opacity-55" style={{ top: '15%', right: '20%' }} />
+      <div className="cloud cloud--sm absolute opacity-45" style={{ top: '10%', left: '40%' }} />
+      <div className="cloud cloud--xl absolute opacity-35" style={{ top: '30%', left: '2%' }} />
+      <div className="cloud cloud--md absolute opacity-50" style={{ top: '22%', right: '5%' }} />
+      <div className="cloud cloud--sm absolute opacity-60" style={{ bottom: '20%', right: '10%' }} />
+      <div className="cloud cloud--lg absolute opacity-40" style={{ bottom: '10%', left: '15%' }} />
+      <div className="cloud cloud--md absolute opacity-45" style={{ bottom: '30%', left: '50%' }} />
+
       {/* Header / Nav */}
       <div className="w-full max-w-2xl flex items-center justify-between mb-2 sm:mb-8 z-10 pt-1 sm:pt-4">
         <button
@@ -265,24 +325,24 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             trigger('nudge');
             onBack();
           }}
-          className="flex items-center justify-center p-2 sm:p-3 bg-white rounded-full shadow-md text-sky-500 hover:bg-sky-50 transition"
+          className="btn btn-circle btn-active bg-white border-2 border-dark shadow-[2px_2px_0px_theme(colors.dark)] text-dark disabled:opacity-50"
         >
           <ArrowLeft size={24} className="sm:w-8 sm:h-8" />
         </button>
-        <div className="flex-1 mx-4 sm:mx-8 relative h-3 sm:h-4 bg-sky-200 rounded-full overflow-hidden">
+        <div className="flex-1 mx-4 sm:mx-8 relative h-4 sm:h-5 bg-white rounded-full overflow-hidden border-2 border-dark shadow-[2px_2px_0px_theme(colors.dark)]">
           <motion.div
-            className="h-full bg-green-400"
+            className="h-full bg-toy-green"
             animate={{ width: `${progress}%` }}
             transition={{ type: 'spring', stiffness: 100, damping: 15 }}
           />
         </div>
-        <div className="text-sm sm:text-xl font-bold bg-white px-3 py-1 sm:px-4 sm:py-2 rounded-full shadow-lg text-sky-600">
+        <div className="text-sm sm:text-xl font-bold bg-white px-3 py-1 sm:px-4 sm:py-2 rounded-full border-4 border-dark shadow-[2px_2px_0px_theme(colors.dark)] text-dark">
           {currentIndex + 1} / {sequence.length}
         </div>
       </div>
 
       {/* Main Play Area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full z-10 gap-4 sm:gap-8 overflow-hidden">
+      <div className="flex-1 min-h-[min-content] flex flex-col items-center justify-center w-full z-10 gap-[clamp(0.5rem,3dvh,2rem)] sm:gap-8 overflow-visible py-2 sm:py-0">
 
         {/* Panda + Balloon */}
         <div className="flex flex-col items-center relative">
@@ -296,13 +356,30 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               transition={{ type: 'spring', stiffness: 250, damping: 22 }}
               className="flex flex-col items-center"
             >
-              <div className="bg-white rounded-[1.25rem] sm:rounded-[3rem] p-3 sm:p-8 shadow-2xl relative flex items-center gap-2 sm:gap-4 z-20">
-                <span className="text-3xl sm:text-4xl md:text-6xl font-bold text-dark">
-                  {currentProblem.question}
-                </span>
+              <div className="bg-white rounded-[1.25rem] sm:rounded-[3rem] p-3 sm:p-5 sm:px-8 shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark relative flex items-center gap-2 sm:gap-4 z-20 shrink-0">
+                <div className="text-[clamp(1.75rem,5dvh,3.75rem)] font-bold font-bubble flex items-center gap-2 sm:gap-4 text-dark leading-none">
+                  <span>{currentProblem.question.replace('?', '').trim()}</span>
+                  <motion.div
+                    animate={feedback === 'shake' ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className={`min-w-[clamp(4rem,10dvh,6rem)] h-[clamp(3.5rem,8dvh,5rem)] rounded-xl sm:rounded-2xl border-4 flex items-center justify-center relative shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)] transition-colors px-2 sm:px-4 ${
+                      feedback === 'success' ? 'border-toy-green bg-toy-green/10' :
+                      feedback === 'shake' ? 'border-toy-orange bg-toy-orange/10' :
+                      'border-dark bg-gray-50'
+                    }`}
+                  >
+                    <span className={`font-mono tracking-wider leading-none text-center w-full z-10 ${
+                      feedback === 'success' ? 'text-green-600' :
+                      feedback === 'shake' ? 'text-orange-600' :
+                      'text-sky-600'
+                    }`}>
+                      {inputVal || '?'}
+                    </span>
+                  </motion.div>
+                </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 ml-2 sm:ml-4 border-l-2 border-slate-100 pl-2 sm:pl-4">
                   {/* Hint button */}
                   {currentProblem.factors && (
                     <motion.button
@@ -317,19 +394,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
                     </motion.button>
                   )}
 
-                  {/* TTS button */}
-                  {hasTts && (
-                    <motion.button
-                      type="button"
-                      onClick={() => { initAudioContext(); ensureAudioUnlocked(); speakQuestion(currentProblem); }}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 sm:p-3 rounded-full bg-sky-100 hover:bg-sky-200 active:bg-sky-300 transition-colors text-sky-600 flex-shrink-0"
-                      aria-label="Lees de vraag voor"
-                    >
-                      <Volume2 size={24} className="sm:w-8 sm:h-8" />
-                    </motion.button>
-                  )}
+
                 </div>
               </div>
 
@@ -356,6 +421,8 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             animate={
               pandaState === 'happy'
                 ? { y: [0, -20, 0] }
+                : pandaState === 'error'
+                ? { x: [0, -6, 6, -4, 4, 0] }
                 : pandaState === 'thinking'
                 ? { rotate: [0, 3, -3, 0] }
                 : { y: [0, -4, 0] }
@@ -363,6 +430,8 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             transition={
               pandaState === 'happy'
                 ? { type: 'spring', stiffness: 300, damping: 12 }
+                : pandaState === 'error'
+                ? { duration: 0.5, ease: 'easeOut' }
                 : pandaState === 'thinking'
                 ? { duration: 0.4, ease: 'easeInOut' }
                 : { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }
@@ -370,35 +439,10 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             className="relative"
           >
             {/* Panda face — exact favicon SVG */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 64 64"
-              className="w-24 h-24 sm:w-36 sm:h-36 z-20 drop-shadow-lg"
-            >
-              {/* Left ear */}
-              <circle cx="14" cy="14" r="12" fill="#1a1a2e" />
-              {/* Right ear */}
-              <circle cx="50" cy="14" r="12" fill="#1a1a2e" />
-              {/* Head */}
-              <circle cx="32" cy="34" r="26" fill="#ffffff" stroke="#1a1a2e" strokeWidth="2" />
-              {/* Left eye patch */}
-              <ellipse cx="20" cy="28" rx="9" ry="10" fill="#1a1a2e" transform="rotate(10 20 28)" />
-              {/* Right eye patch */}
-              <ellipse cx="44" cy="28" rx="9" ry="10" fill="#1a1a2e" transform="rotate(-10 44 28)" />
-              {/* Left eye */}
-              <circle cx="20" cy="27" r="3" fill="#ffffff" />
-              <circle cx="21" cy="26" r="1.2" fill="#ffffff" opacity="0.8" />
-              {/* Right eye */}
-              <circle cx="44" cy="27" r="3" fill="#ffffff" />
-              <circle cx="45" cy="26" r="1.2" fill="#ffffff" opacity="0.8" />
-              {/* Nose */}
-              <ellipse cx="32" cy="38" rx="4" ry="3" fill="#1a1a2e" />
-              {/* Mouth */}
-              <path d="M28 42 Q32 47 36 42" stroke="#1a1a2e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-              {/* Cheek blush */}
-              <circle cx="14" cy="36" r="4" fill="#ffb3b3" opacity="0.5" />
-              <circle cx="50" cy="36" r="4" fill="#ffb3b3" opacity="0.5" />
-            </svg>
+            <PandaAvatar
+              className="w-[clamp(5rem,18dvh,9rem)] h-[clamp(5rem,18dvh,9rem)] z-20 drop-shadow-lg shrink-0"
+              mood={pandaState === 'error' ? 'error' : 'normal'}
+            />
 
             {/* Gentle encouragement on wrong answer — NO red X or harsh feedback */}
             <AnimatePresence>
@@ -416,40 +460,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             </AnimatePresence>
           </motion.div>
         </div>
-
-        {/* Input Box — shakes gently on wrong answer */}
-        <motion.div
-          animate={feedback === 'shake' ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className={`h-16 w-52 sm:h-24 sm:w-64 bg-white rounded-2xl sm:rounded-3xl border-4 shadow-inner flex items-center justify-center relative overflow-hidden transition-colors ${
-            feedback === 'success' ? 'border-green-400 bg-green-50' :
-            feedback === 'shake' ? 'border-orange-300 bg-orange-50' :
-            'border-sky-300'
-          }`}
-        >
-          <AnimatePresence>
-            {feedback === 'success' && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                className="absolute left-4 text-green-500"
-              >
-                <CheckCircle2 size={40} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <span className={`text-4xl sm:text-4xl md:text-6xl font-bold font-mono tracking-wider ${
-            feedback === 'success' ? 'text-green-600' :
-            feedback === 'shake' ? 'text-orange-600' :
-            'text-dark'
-          }`}>
-            {inputVal || '?'}
-          </span>
-        </motion.div>
       </div>
 
-      <div className="w-full pb-2 sm:pb-8 z-10 flex flex-col items-center">
+      <div className="w-full pb-2 sm:pb-8 z-10 flex flex-col items-center shrink-0">
         <Numpad
           onType={handleType}
           onClear={clearInput}

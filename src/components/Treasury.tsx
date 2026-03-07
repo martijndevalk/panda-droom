@@ -4,6 +4,9 @@ import { motion } from 'motion/react';
 import { Worlds } from '../lib/GameData';
 import { useWebHaptics } from 'web-haptics/react';
 import { RewardProgressBar, REWARDS_THRESHOLDS } from './RewardProgressBar';
+import { speak, stopSpeaking, ensureAudioUnlocked } from '../lib/tts';
+import { initAudioContext, playSound } from '../lib/audio';
+import React, { useEffect, useRef } from 'react';
 
 interface TreasuryProps {
   playerName: string;
@@ -28,6 +31,8 @@ const STICKER_CONFIG = [
 
 export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, onBack, onReset }) => {
   const { trigger } = useWebHaptics();
+  const hasSpokenRef = useRef(false);
+
 
   const stickers = Worlds.map((world, i) => {
     const config = STICKER_CONFIG[i] || STICKER_CONFIG[0];
@@ -42,6 +47,25 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
 
   const earnedCount = stickers.filter(s => unlockedWorlds.includes(s.worldId)).length;
 
+  const handleSpeak = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    speak(`Mijn Schatkist! Je hebt ${earnedCount} van de ${stickers.length} stickers verdiend!`);
+  };
+
+  useEffect(() => {
+    if (!hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      playSound('treasure_open');
+      const timer = setTimeout(() => handleSpeak(), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [earnedCount, stickers.length]);
+
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
+
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col p-2 sm:p-4 md:p-8 bg-amber-100 overflow-y-auto">
       <div className="flex items-center mb-4 sm:mb-6 md:mb-8 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-0">
@@ -51,13 +75,20 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
             trigger('nudge');
             onBack();
           }}
-          className="flex items-center justify-center p-2 sm:p-3 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-50"
+          className="btn btn-circle bg-white border-2 border-dark shadow-[2px_2px_0px_theme(colors.dark)] text-amber-600 hover:bg-amber-50"
         >
           <ArrowLeft className="w-6 h-6 md:w-8 md:h-8" />
         </button>
-        <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-amber-900 flex items-center gap-2 md:gap-3">
-          <Gift className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" /> Mijn Schatkist
-        </h1>
+        <motion.div
+          initial={{ x: -30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 14 }}
+          className="flex items-center gap-2"
+        >
+          <h1 className="title-font text-xl sm:text-2xl md:text-4xl font-black text-amber-900 flex items-center gap-2 md:gap-3">
+            <Gift className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" /> Mijn Schatkist
+          </h1>
+        </motion.div>
       </div>
 
       {/* Progress display */}
@@ -69,15 +100,18 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
           return (
             <motion.div
               key={i}
-              whileHover={{ scale: isUnlocked ? 1.05 : 1 }}
-              className={`p-3 sm:p-4 rounded-[1.25rem] sm:rounded-[1.5rem] shadow-xl border-2 sm:border-3 flex flex-col items-center gap-2 text-center ${
-                isUnlocked ? 'bg-white border-yellow-400' : 'bg-gray-200 border-gray-300 opacity-60'
+              initial={{ scale: 0, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 14, delay: i * 0.05 }}
+              whileHover={isUnlocked ? { scale: 1.05, rotate: (i % 2 === 0 ? 3 : -3) } : {}}
+              className={`p-3 sm:p-4 rounded-[1.25rem] sm:rounded-[1.5rem] shadow-[4px_4px_0px_theme(colors.dark)] border-4 flex flex-col items-center gap-2 text-center ${
+                isUnlocked ? 'bg-white border-dark' : 'bg-gray-200 border-gray-400 opacity-70'
               }`}
             >
               <div className="bg-amber-100 p-3 sm:p-4 rounded-full shadow-inner">
                 {isUnlocked ? s.icon : <Star size={36} className="text-gray-400" />}
               </div>
-              <h3 className={`text-sm sm:text-base font-bold leading-tight ${isUnlocked ? 'text-amber-800' : 'text-gray-500'}`}>
+              <h3 className={`title-font text-sm sm:text-base font-black leading-tight ${isUnlocked ? 'text-amber-800' : 'text-gray-500'}`}>
                 {isUnlocked ? s.title : '???'}
               </h3>
               <p className={`text-xs sm:text-sm font-medium ${isUnlocked ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -88,12 +122,14 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
         })}
       </div>
 
-      <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-lg border-2 sm:border-4 border-amber-300 max-w-2xl mx-auto w-full mb-4 sm:mb-8">
+      <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark max-w-2xl mx-auto w-full mb-4 sm:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-          <h2 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
+          <h2 className="title-font text-2xl font-black text-amber-900 flex items-center gap-2">
             <LockKeyholeOpen /> Speciale Ouders Sectie
           </h2>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05, rotate: 1 }}
+            whileTap={{ scale: 0.95, rotate: -1 }}
             type="button"
             onClick={() => {
               const pwd = window.prompt(`Voer het ouder wachtwoord in om de voortgang van ${playerName} te resetten:`);
@@ -103,10 +139,11 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
                 alert('Verkeerd wachtwoord!');
               }
             }}
-            className="text-sm bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors"
+            style={{ backgroundColor: '#FF5A5F' }}
+            className="text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-[1rem] sm:rounded-[1.25rem] border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] text-sm sm:text-base whitespace-nowrap transition-colors flex-shrink-0"
           >
             Reset Voortgang
-          </button>
+          </motion.button>
         </div>
         <p className="text-lg text-amber-800 mb-4">
           Heeft de Panda weer een nieuwe tafel behaald? Dan mag daar natuurlijk een <em>echte</em> beloning tegenover staan!

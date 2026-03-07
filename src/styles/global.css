@@ -1,7 +1,8 @@
-@import '@fontsource/chewy';
 @import '@fontsource/nunito/400.css';
+@import '@fontsource/nunito/600.css';
 @import '@fontsource/nunito/700.css';
 @import '@fontsource/nunito/800.css';
+@import '@fontsource/nunito/900.css';
 
 @tailwind base;
 @tailwind components;
@@ -9,49 +10,195 @@
 
 @layer base {
   body {
-    @apply bg-light font-bubble text-dark overflow-hidden flex flex-col;
+    @apply bg-light font-sans text-dark overflow-hidden flex flex-col;
     height: 100vh;
     height: 100dvh;
   }
+
+  h1, h2, h3, h4, h5, h6, .title-font {
+    @apply font-bubble;
+    font-weight: 900;
+  }
 }
 
+@layer components {
+}
+
+/* ── Realistic puffy clouds ── */
 .cloud {
-  background: white;
-  border-radius: 50px;
   position: absolute;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  animation: cloudFloat 12s ease-in-out infinite;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  animation: cloudFloat 14s ease-in-out infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+/* Left bump */
+.cloud::before {
+  width: 55%;
+  height: 100%;
+  top: -40%;
+  left: 12%;
+}
+
+/* Right bump (taller) */
+.cloud::after {
+  width: 45%;
+  height: 110%;
+  top: -55%;
+  right: 15%;
+}
+
+/* Variation for different cloud sizes */
+.cloud--sm {
+  width: 60px;
+  height: 28px;
+}
+
+.cloud--md {
+  width: 90px;
+  height: 36px;
+}
+
+.cloud--lg {
+  width: 120px;
+  height: 48px;
+}
+
+.cloud--xl {
+  width: 150px;
+  height: 56px;
 }
 
 .cloud:nth-of-type(odd) {
-  animation: cloudWobble 16s ease-in-out infinite;
-  animation-delay: -2s;
+  animation: cloudWobble 18s ease-in-out infinite;
+  animation-delay: -3s;
 }
 
 .cloud:nth-of-type(3n) {
-  animation: cloudDrift 20s ease-in-out infinite;
-  animation-delay: -5s;
+  animation: cloudDrift 22s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+.cloud:nth-of-type(4n) {
+  animation: cloudFloat 16s ease-in-out infinite;
+  animation-delay: -10s;
+}
+
+.cloud:nth-of-type(5n) {
+  animation: cloudWobble 20s ease-in-out infinite;
+  animation-delay: -4s;
 }
 
 @keyframes cloudFloat {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(10px, -3px); }
-  50% { transform: translate(-5px, 6px); }
-  75% { transform: translate(8px, 3px); }
-  100% { transform: translate(0, 0); }
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(12px) translateY(-4px); }
+  50% { transform: translateX(-6px) translateY(5px); }
+  75% { transform: translateX(8px) translateY(2px); }
+  100% { transform: translateX(0) translateY(0); }
 }
 
 @keyframes cloudWobble {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-12px, 5px); }
-  50% { transform: translate(8px, -3px); }
-  75% { transform: translate(-6px, 8px); }
-  100% { transform: translate(0, 0); }
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-14px) translateY(6px); }
+  50% { transform: translateX(10px) translateY(-4px); }
+  75% { transform: translateX(-8px) translateY(7px); }
+  100% { transform: translateX(0) translateY(0); }
 }
 
 @keyframes cloudDrift {
-  0% { transform: translate(0, 0); }
-  33% { transform: translate(15px, -6px); }
-  66% { transform: translate(-10px, 8px); }
-  100% { transform: translate(0, 0); }
+  0% { transform: translateX(0) translateY(0); }
+  33% { transform: translateX(18px) translateY(-7px); }
+  66% { transform: translateX(-12px) translateY(6px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+/* ── Sun ── */
+.sun {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fff176, #fdd835, #f9a825);
+  box-shadow:
+    0 0 20px rgba(253, 216, 53, 0.6),
+    0 0 60px rgba(253, 216, 53, 0.3),
+    0 0 100px rgba(253, 216, 53, 0.15);
+  z-index: 1;
+  animation: sunPulse 4s ease-in-out infinite;
+}
+
+.sun::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 216, 53, 0.25) 0%, transparent 70%);
+  animation: sunGlow 3s ease-in-out infinite alternate;
+}
+
+/* Sun rays */
+.sun::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg, rgba(253, 216, 53, 0.3) 5deg, transparent 10deg,
+      transparent 30deg, rgba(253, 216, 53, 0.25) 35deg, transparent 40deg,
+      transparent 60deg, rgba(253, 216, 53, 0.3) 65deg, transparent 70deg,
+      transparent 90deg, rgba(253, 216, 53, 0.25) 95deg, transparent 100deg,
+      transparent 120deg, rgba(253, 216, 53, 0.3) 125deg, transparent 130deg,
+      transparent 150deg, rgba(253, 216, 53, 0.25) 155deg, transparent 160deg,
+      transparent 180deg, rgba(253, 216, 53, 0.3) 185deg, transparent 190deg,
+      transparent 210deg, rgba(253, 216, 53, 0.25) 215deg, transparent 220deg,
+      transparent 240deg, rgba(253, 216, 53, 0.3) 245deg, transparent 250deg,
+      transparent 270deg, rgba(253, 216, 53, 0.25) 275deg, transparent 280deg,
+      transparent 300deg, rgba(253, 216, 53, 0.3) 305deg, transparent 310deg,
+      transparent 330deg, rgba(253, 216, 53, 0.25) 335deg, transparent 340deg,
+      transparent 360deg
+    );
+  border-radius: 50%;
+  animation: sunRaysSpin 20s linear infinite;
+}
+
+.sun--sm {
+  width: 45px;
+  height: 45px;
+}
+
+.sun--sm::after {
+  width: 80px;
+  height: 80px;
+}
+
+@keyframes sunPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes sunGlow {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes sunRaysSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }

@@ -5,7 +5,7 @@
  * This enables offline play after first load.
  */
 
-const CACHE_NAME = 'panda-droom-v2';
+const CACHE_NAME = 'panda-droom-v4';
 
 // Install: pre-cache shell
 self.addEventListener('install', (event) => {

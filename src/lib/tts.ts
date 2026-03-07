@@ -188,7 +188,26 @@ function speakNative(text: string) {
   if (!('speechSynthesis' in window)) return;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'nl-NL';
-  utterance.rate = 0.9; // Just slightly slower, pleasant for kids
+
+  // Try to find a female Dutch voice
+  const voices = window.speechSynthesis.getVoices();
+  const nlVoices = voices.filter(v => v.lang.startsWith('nl-'));
+  const femaleVoice = nlVoices.find(v =>
+    v.name.toLowerCase().includes('female') ||
+    v.name.toLowerCase().includes('vrouw') ||
+    v.name.includes('Google') || // Google's default NL voice is usually female
+    v.name.includes('Claire') || // Apple's female NL voice
+    v.name.includes('Fiona')     // Another Apple female voice
+  );
+
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
+  } else if (nlVoices.length > 0) {
+    utterance.voice = nlVoices[0];
+  }
+
+  utterance.pitch = 1.0; // Normal pitch
+  utterance.rate = 0.9; // Normal/slightly slower pace, better for kids
   window.speechSynthesis.speak(utterance);
 }
 

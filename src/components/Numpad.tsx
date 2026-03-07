@@ -10,37 +10,37 @@ interface NumpadProps {
   disabled?: boolean;
 }
 
-const colors = [
-  'bg-red-400 hover:bg-red-500',
-  'bg-orange-400 hover:bg-orange-500',
-  'bg-yellow-400 hover:bg-yellow-500',
-  'bg-green-400 hover:bg-green-500',
-  'bg-teal-400 hover:bg-teal-500',
-  'bg-blue-400 hover:bg-blue-500',
-  'bg-indigo-400 hover:bg-indigo-500',
-  'bg-purple-400 hover:bg-purple-500',
-  'bg-pink-400 hover:bg-pink-500',
-  'bg-rose-400 hover:bg-rose-500',
-  'bg-gray-400 hover:bg-gray-500',
-  'bg-sky-500 hover:bg-sky-600'
+const buttonStyles: { bg: string; border: string; text: string }[] = [
+  { bg: '#FF5A5F', border: '#dc2626', text: '#fff' },       // 1 – rood
+  { bg: '#FF9F1C', border: '#ea580c', text: '#fff' },       // 2 – oranje
+  { bg: '#FFD803', border: '#e5c000', text: '#fff' },       // 3 – geel
+  { bg: '#00B4D8', border: '#0092af', text: '#fff' },       // 4 – cyaan
+  { bg: '#3A86FF', border: '#1d4ed8', text: '#fff' },       // 5 – blauw
+  { bg: '#8338EC', border: '#7e22ce', text: '#fff' },       // 6 – paars
+  { bg: '#FF006E', border: '#be185d', text: '#fff' },       // 7 – roze
+  { bg: '#A7C957', border: '#8ba646', text: '#fff' },       // 8 – lime
+  { bg: '#2EC4B6', border: '#0f766e', text: '#fff' },       // 9 – groen
+  { bg: '#F72585', border: '#be123c', text: '#fff' },       // 0 – rose
+  { bg: '#ffffff', border: '#d1d5db', text: '#FF5A5F' },    // C – wit
+  { bg: '#2EC4B6', border: '#0f766e', text: '#fff' },       // OK – groen
 ];
 
 export const Numpad: React.FC<NumpadProps> = ({ onType, onClear, onSubmit, disabled }) => {
   const { trigger } = useWebHaptics();
 
   const keys = [
-    { label: '1', val: '1', color: colors[0] },
-    { label: '2', val: '2', color: colors[1] },
-    { label: '3', val: '3', color: colors[2] },
-    { label: '4', val: '4', color: colors[3] },
-    { label: '5', val: '5', color: colors[4] },
-    { label: '6', val: '6', color: colors[5] },
-    { label: '7', val: '7', color: colors[6] },
-    { label: '8', val: '8', color: colors[7] },
-    { label: '9', val: '9', color: colors[8] },
-    { label: 'C', val: 'C', color: colors[10], isAction: true },
-    { label: '0', val: '0', color: colors[9] },
-    { label: 'OK', val: 'OK', color: colors[11], isAction: true }
+    { label: '1', val: '1', style: buttonStyles[0] },
+    { label: '2', val: '2', style: buttonStyles[1] },
+    { label: '3', val: '3', style: buttonStyles[2] },
+    { label: '4', val: '4', style: buttonStyles[3] },
+    { label: '5', val: '5', style: buttonStyles[4] },
+    { label: '6', val: '6', style: buttonStyles[5] },
+    { label: '7', val: '7', style: buttonStyles[6] },
+    { label: '8', val: '8', style: buttonStyles[7] },
+    { label: '9', val: '9', style: buttonStyles[8] },
+    { label: 'C', val: 'C', style: buttonStyles[10], isAction: true },
+    { label: '0', val: '0', style: buttonStyles[9] },
+    { label: 'OK', val: 'OK', style: buttonStyles[11], isAction: true }
   ];
 
   const handleClick = (val: string) => {
@@ -52,22 +52,31 @@ export const Numpad: React.FC<NumpadProps> = ({ onType, onClear, onSubmit, disab
   };
 
   return (
-    <div className="grid grid-cols-3 gap-1.5 sm:gap-4 w-full max-w-sm mx-auto p-1.5 sm:p-4 bg-white/50 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-xl">
+    <div className="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-[260px] sm:max-w-sm mx-auto p-4 sm:p-6 bg-white/50 backdrop-blur-md rounded-[2rem] sm:rounded-[2.5rem] shadow-xl">
       {keys.map((k, i) => (
         <motion.button
           key={k.val}
-          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          initial={{ opacity: 0, scale: 0.8, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{
             type: 'spring',
-            stiffness: 250,
-            damping: 22,
-            delay: i * 0.02,
+            stiffness: 300,
+            damping: 14, // Wobbly effect
+            mass: 0.8,
+            delay: i * 0.03,
           }}
-          whileTap={{ scale: 0.92 }}
+          whileHover={{ scale: 1.05, rotate: (i % 2 === 0 ? 2 : -2) }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => handleClick(k.val)}
           disabled={disabled}
-          className={`${k.color} text-white font-bold text-3xl sm:text-4xl p-3 sm:p-6 rounded-2xl shadow-md transform transition-all disabled:opacity-50 flex items-center justify-center`}
+          style={{
+            backgroundColor: k.style.bg,
+            color: k.style.text,
+            borderBottomWidth: '4px',
+            borderBottomColor: k.style.border,
+            borderBottomStyle: 'solid',
+          }}
+          className="w-full h-auto aspect-square rounded-full text-3xl sm:text-4xl shadow-md transform transition-all disabled:opacity-50 flex flex-col items-center justify-center font-bubble font-bold"
         >
           {k.val === 'C' ? <Delete size={28} className="sm:w-8 sm:h-8" /> : k.label}
         </motion.button>

@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Play } from 'lucide-react';
+import { PandaAvatar } from './PandaAvatar';
+import { speak, stopSpeaking, ensureAudioUnlocked } from '../lib/tts';
+import { initAudioContext } from '../lib/audio';
 
 interface StartScreenProps {
   onStart: (name: string) => void;
@@ -8,6 +11,25 @@ interface StartScreenProps {
 
 export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   const [name, setName] = useState('');
+  const hasSpokenRef = useRef(false);
+
+  const handleSpeak = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    speak("Welkom bij Panda's Getallenreis! Hoe heet jij?");
+  };
+
+  useEffect(() => {
+    if (!hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const timer = setTimeout(() => handleSpeak(), 400);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,30 +39,29 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 sm:p-8 bg-sky-200 h-full relative w-full overflow-hidden">
-      {/* Floating panda emoji */}
+    <div className="flex flex-col items-center justify-center p-4 sm:p-8 bg-sky-200 h-full relative w-full overflow-y-auto overflow-x-hidden">
+      {/* Floating panda */}
       <motion.div
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
-        className="text-6xl sm:text-7xl mb-4 z-10"
+        initial={{ y: -40, opacity: 0, scale: 0.8 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1, mass: 0.8 }}
+        className="mb-4 z-10"
       >
-        <motion.span
+        <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          className="inline-block"
         >
-          🐼
-        </motion.span>
+          <PandaAvatar className="w-24 h-24 sm:w-32 sm:h-32 drop-shadow-md" />
+        </motion.div>
       </motion.div>
 
       <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-        className="text-center mb-6 sm:mb-10 z-10 bg-white p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-xl max-w-sm w-full border-4 border-sky-300"
+        initial={{ y: 40, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 14, mass: 0.8 }}
+        className="text-center mb-6 sm:mb-10 z-10 bg-white p-6 sm:p-8 rounded-[2rem] shadow-[8px_8px_0px_theme(colors.dark)] max-w-sm w-full border-4 border-dark relative flex flex-col items-center"
       >
-        <h1 className="text-2xl sm:text-3xl font-bold text-dark drop-shadow-sm mb-4">
+        <h1 className="title-font text-2xl sm:text-3xl font-black text-dark drop-shadow-sm mb-4">
           Welkom bij Panda's Getallenreis!
         </h1>
         <p className="text-base sm:text-lg text-gray-600 mb-6 font-medium">
@@ -53,16 +74,16 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Je naam..."
-            className="w-full text-xl sm:text-2xl p-3 sm:p-4 rounded-xl border-2 border-gray-300 focus:border-green-400 focus:outline-none focus:ring-4 focus:ring-green-100 text-center font-bold text-gray-800"
+            className="w-full text-xl sm:text-2xl p-3 sm:p-4 rounded-2xl border-4 border-dark focus:border-toy-green focus:outline-none focus:ring-0 text-center font-bold text-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-colors"
             autoFocus
           />
           <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.06, rotate: 2 }}
+            whileTap={{ scale: 0.92, rotate: -1 }}
             type="submit"
             disabled={!name.trim()}
-            className={`flex items-center justify-center gap-2 p-3 sm:p-4 rounded-xl font-bold text-lg sm:text-xl shadow-md transition-colors ${
-              name.trim() ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            className={`btn btn-lg w-full rounded-2xl text-lg sm:text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] ${
+              name.trim() ? 'btn-success text-white' : 'btn-disabled bg-gray-300'
             }`}
           >
             <Play size={24} className="text-white" />
@@ -71,10 +92,18 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         </form>
       </motion.div>
 
-      {/* Decorative BG clouds */}
-      <div className="absolute top-10 left-10 cloud w-24 h-12 opacity-50" />
-      <div className="absolute top-40 right-10 cloud w-32 h-16 opacity-60" />
-      <div className="absolute bottom-20 left-20 cloud w-20 h-10 opacity-40" />
+      {/* ☀️ Sun */}
+      <div className="sun sun--sm absolute top-4 right-6" />
+
+      {/* ☁️ Decorative clouds */}
+      <div className="cloud cloud--lg absolute opacity-50" style={{ top: '6%', left: '5%' }} />
+      <div className="cloud cloud--md absolute opacity-55" style={{ top: '15%', right: '20%' }} />
+      <div className="cloud cloud--sm absolute opacity-45" style={{ top: '10%', left: '40%' }} />
+      <div className="cloud cloud--xl absolute opacity-35" style={{ top: '30%', left: '2%' }} />
+      <div className="cloud cloud--md absolute opacity-50" style={{ top: '22%', right: '5%' }} />
+      <div className="cloud cloud--sm absolute opacity-60" style={{ bottom: '20%', right: '10%' }} />
+      <div className="cloud cloud--lg absolute opacity-40" style={{ bottom: '10%', left: '15%' }} />
+      <div className="cloud cloud--md absolute opacity-45" style={{ bottom: '30%', left: '50%' }} />
     </div>
   );
 };

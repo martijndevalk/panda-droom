@@ -1,103 +1,187 @@
+import { Howl, Howler } from 'howler';
+
+const sounds: Record<string, Howl> = {};
+let bgmAudio: Howl | null = null;
+let bgmStarted = false;
+
+/** Whether the user wants BGM on or off (persisted in localStorage). */
+let bgmEnabled: boolean = typeof window !== 'undefined'
+  ? localStorage.getItem('panda-droom-bgm-enabled') !== 'false'
+  : true;
+
+/** Simple listener list so React can subscribe to bgmEnabled changes. */
+type BGMChangeCallback = (enabled: boolean) => void;
+const bgmChangeListeners: BGMChangeCallback[] = [];
+
 /**
- * Lightweight sound effects using Web Audio API (no external dependencies).
- *
- * Android Chrome (and some other mobile browsers) create AudioContext in a
- * `suspended` state. The context can only be resumed inside a user-gesture
- * handler, so we must `await audioCtx.resume()` before scheduling any nodes.
+ * Multiple success sound variants — rotated on each correct answer
+ * so the child hears a different celebration sound each time.
  */
+const successSounds: Howl[] = [];
+let successSoundIndex = 0;
 
-let audioCtx: AudioContext | null = null;
+function getAudioUrl(filename: string) {
+  // @ts-ignore - Vite statically replaces import.meta.env
+  const base = typeof import.meta !== 'undefined' && typeof import.meta.env !== 'undefined' ? import.meta.env.BASE_URL : '/panda-droom/';
+  return `${base.replace(/\/$/, '')}/${filename}`;
+}
+
+if (typeof window !== 'undefined') {
+  // Success sound variants — rotated per correct answer
+  successSounds.push(
+    new Howl({
+      src: [getAudioUrl('MA_Stockboom_Cartoon_Game_Bonus_Yeah_2_MP3.mp3')],
+      preload: true,
+    }),
+    new Howl({
+      src: [getAudioUrl('MA_Cartoon Voice Good mood-001.wav')],
+      preload: true,
+    }),
+    new Howl({
+      src: [getAudioUrl('MA_Cartoon Voice Good mood-002.wav')],
+      preload: true,
+    }),
+  );
+
+  // Keep the first variant accessible as `sounds.success` for backwards compat
+  sounds.success = successSounds[0];
+
+  sounds.cheer = new Howl({
+    src: [getAudioUrl('MA_Originals_Cartoon_Crowd_small_group_cheering_yay_applause_MP3.mp3')],
+    preload: true,
+  });
+
+  sounds.level_complete = new Howl({
+    src: [getAudioUrl('MA_AppleHillStudios_HappyWoohooYeahCheer_3_MP3.mp3')],
+    preload: true,
+  });
+
+  sounds.fail = new Howl({
+    src: [getAudioUrl('MA_WOWSound_Cartoon_NG_Bad_02_MP3.mp3')],
+    preload: true,
+  });
+
+  sounds.pop = new Howl({
+    src: [getAudioUrl('Mouth_Pop_1.wav')],
+    volume: 0.5,
+    preload: true,
+  });
+
+  sounds.treasure_open = new Howl({
+    src: [getAudioUrl('MA_Originals_SillyCartoonSounds_1_MP3.mp3')],
+    preload: true,
+  });
+
+  bgmAudio = new Howl({
+    src: [getAudioUrl('MA_AwesomeMusic_KidsAreChampionsOfFun.wav')],
+    loop: true,
+    volume: 0.15,
+    preload: true,
+  });
+}
 
 /**
- * Initialise / resume the shared AudioContext.
- *
- * Call this from any user-gesture handler (click, tap, touchstart) to
- * make sure subsequent `playSound` calls work immediately.
+ * Initialise / resume the shared AudioContext (handled internally by Howler).
+ * Also kick off BGM on user gesture.
  */
 export function initAudioContext(): void {
   if (typeof window === 'undefined') return;
 
-  if (!audioCtx) {
-    const AudioContextClass =
-      window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    audioCtx = new AudioContextClass();
+  // Howler automatically resumes audio contexts globally on user interaction.
+  if (Howler.ctx?.state === 'suspended') {
+    Howler.ctx.resume().catch(() => {});
   }
 
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {
-      /* resume may fail when called outside a gesture — ignore */
-    });
+  if (!bgmStarted) {
+    playBGM();
   }
 }
 
-/**
- * Schedule the oscillator nodes for a given sound type.
- * Must only be called when `audioCtx` is in `running` state.
- */
-function scheduleSound(ctx: AudioContext, type: 'success' | 'fail' | 'pop'): void {
-  const oscillator = ctx.createOscillator();
-  const gainNode = ctx.createGain();
+export function playBGM(): void {
+  if (!bgmAudio || typeof window === 'undefined') return;
+  if (!bgmEnabled) return;
 
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
-
-  const t = ctx.currentTime;
-
-  if (type === 'success') {
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(440, t);
-    oscillator.frequency.exponentialRampToValueAtTime(880, t + 0.1);
-
-    gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.5, t + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-
-    oscillator.start(t);
-    oscillator.stop(t + 0.3);
-  } else if (type === 'fail') {
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(200, t);
-    oscillator.frequency.exponentialRampToValueAtTime(100, t + 0.3);
-
-    gainNode.gain.setValueAtTime(0.3, t);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-
-    oscillator.start(t);
-    oscillator.stop(t + 0.3);
-  } else if (type === 'pop') {
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(600, t);
-    gainNode.gain.setValueAtTime(0.1, t);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-    oscillator.start(t);
-    oscillator.stop(t + 0.05);
+  if (!bgmAudio.playing()) {
+    bgmAudio.play();
+    bgmStarted = true;
   }
 }
+
+export function stopBGM(): void {
+  if (bgmAudio && bgmAudio.playing()) {
+    bgmAudio.pause();
+    bgmStarted = false;
+  }
+}
+
+/** Toggle background music on/off. Persists to localStorage. */
+export function toggleBGM(): boolean {
+  bgmEnabled = !bgmEnabled;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('panda-droom-bgm-enabled', String(bgmEnabled));
+  }
+  if (bgmEnabled) {
+    playBGM();
+  } else {
+    stopBGM();
+  }
+  bgmChangeListeners.forEach(cb => cb(bgmEnabled));
+  return bgmEnabled;
+}
+
+/** Check if BGM is currently enabled. */
+export function isBGMEnabled(): boolean {
+  return bgmEnabled;
+}
+
+/** Subscribe to BGM enabled/disabled changes (for React re-render). */
+export function onBGMChange(cb: BGMChangeCallback): void {
+  bgmChangeListeners.push(cb);
+}
+
+/** Unsubscribe from BGM changes. */
+export function offBGMChange(cb: BGMChangeCallback): void {
+  const idx = bgmChangeListeners.indexOf(cb);
+  if (idx >= 0) bgmChangeListeners.splice(idx, 1);
+}
+
+export type SoundEffectOptions = 'success' | 'fail' | 'pop' | 'cheer' | 'level_complete' | 'treasure_open';
 
 /**
  * Play a short sound effect.
  *
- * The function creates / resumes the AudioContext (awaiting the resume
- * promise) so that sounds play reliably on Android and iOS.
+ * For the 'success' type the three loaded variants are played in
+ * round-robin order so the child hears a different sound each time.
  */
-export const playSound = (type: 'success' | 'fail' | 'pop'): void => {
+export const playSound = (type: SoundEffectOptions): void => {
   if (typeof window === 'undefined') return;
 
-  // Ensure context exists
-  if (!audioCtx) {
-    const AudioContextClass =
-      window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    audioCtx = new AudioContextClass();
+  if (type === 'success' && successSounds.length > 0) {
+    const sound = successSounds[successSoundIndex % successSounds.length];
+    sound.play();
+    successSoundIndex++;
+    return;
   }
 
-  if (audioCtx.state === 'suspended') {
-    // Await resume, then schedule the sound
-    audioCtx.resume().then(() => {
-      if (audioCtx) scheduleSound(audioCtx, type);
-    }).catch(() => { /* ignore */ });
-  } else {
-    scheduleSound(audioCtx, type);
+  const sound = sounds[type];
+  if (sound) {
+    if (type === 'pop') {
+      sound.stop(); // restart immediately for fast clicks
+    }
+    sound.play();
   }
 };
+
+if (typeof window !== 'undefined') {
+  // Global click listener to automatically play a 'pop' sound on any button click
+  // and resume AudioContext globally.
+  window.addEventListener('click', (e) => {
+    initAudioContext();
+
+    // Check if the click originated from a button or anchor
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      playSound('pop');
+    }
+  }, { capture: true }); // Use capture phase so it runs before React handlers
+}

@@ -7,7 +7,8 @@ import { IntroScreen } from './IntroScreen';
 import { DoneForToday } from './DoneForToday';
 import { Worlds } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
-import { playSound, initAudioContext } from '../lib/audio';
+import { Volume2, VolumeX } from 'lucide-react';
+import { playSound, initAudioContext, toggleBGM, isBGMEnabled, onBGMChange, offBGMChange } from '../lib/audio';
 
 type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done';
 
@@ -74,6 +75,15 @@ export default function App() {
 
   // Starting with first table unlocked
   const [unlockedWorlds, setUnlockedWorlds] = useState<string[]>([Worlds[0].id]);
+
+  // BGM toggle state — synced with the audio module
+  const [bgmOn, setBgmOn] = useState(() => isBGMEnabled());
+
+  useEffect(() => {
+    const handler = (enabled: boolean) => setBgmOn(enabled);
+    onBGMChange(handler);
+    return () => offBGMChange(handler);
+  }, []);
 
   // Load saved progress
   useEffect(() => {
@@ -170,7 +180,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.03 }}
             transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-            className="w-full flex-1 flex flex-col relative"
+            className="w-full flex-1 flex flex-col relative min-h-0"
           >
             <StartScreen onStart={handleStart} />
           </motion.div>
@@ -183,7 +193,7 @@ export default function App() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
             transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-            className="w-full flex-1 flex flex-col relative"
+            className="w-full flex-1 flex flex-col relative min-h-0"
           >
             <Map
               playerName={playerName}
@@ -201,7 +211,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -20 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="w-full flex-1 flex flex-col relative bg-sky-100"
+            className="w-full flex-1 flex flex-col relative bg-sky-100 min-h-0"
           >
             <IntroScreen
               table={currentWorld.table}
@@ -217,7 +227,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -20 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="w-full flex-1 flex flex-col relative bg-sky-100"
+            className="w-full flex-1 flex flex-col relative bg-sky-100 min-h-0"
           >
             <Level
               key={currentWorldId}
@@ -236,7 +246,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-            className="w-full flex-1 flex flex-col relative bg-sky-100"
+            className="w-full flex-1 flex flex-col relative bg-sky-100 min-h-0"
           >
             <DoneForToday
               playerName={playerName}
@@ -252,7 +262,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -40 }}
             transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-            className="w-full flex-1 flex flex-col relative"
+            className="w-full flex-1 flex flex-col relative min-h-0"
           >
             <Treasury
               playerName={playerName}
@@ -272,6 +282,34 @@ export default function App() {
         )}
 
       </AnimatePresence>
+
+      {/* 🔊 Floating BGM toggle */}
+      <button
+        type="button"
+        onClick={() => { initAudioContext(); toggleBGM(); }}
+        aria-label={bgmOn ? 'Achtergrondmuziek uitschakelen' : 'Achtergrondmuziek inschakelen'}
+        style={{
+          position: 'fixed',
+          bottom: '1rem',
+          right: '1rem',
+          zIndex: 9999,
+          width: '3rem',
+          height: '3rem',
+          borderRadius: '50%',
+          border: '3px solid rgba(0,0,0,0.12)',
+          background: bgmOn ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.15)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.4rem',
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          transition: 'background 0.2s, transform 0.15s',
+        }}
+      >
+        {bgmOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
+      </button>
     </div>
   );
 }

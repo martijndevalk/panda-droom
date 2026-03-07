@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 
 interface Props {
@@ -9,12 +10,12 @@ const { title } = Astro.props;
 ---
 
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" data-theme="pandadroom">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Leer tafels met Panda! Een vriendelijke reken-app voor kinderen." />
-    <meta name="theme-color" content="#38bdf8" />
+    <meta name="theme-color" content="#FFF8F0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Panda Droom" />
@@ -22,8 +23,9 @@ const { title } = Astro.props;
     <link rel="apple-touch-icon" href="/panda-droom/panda-icon-512.png" />
     <link rel="manifest" href="/panda-droom/manifest.json" />
     <title>{title}</title>
+    <ClientRouter />
   </head>
-  <body class="m-0 p-0 bg-light select-none font-bubble flex flex-col min-h-0 overflow-hidden">
+  <body class="m-0 p-0 bg-light select-none font-sans flex flex-col min-h-0 overflow-hidden">
     <slot />
     <script is:inline>
       if ('serviceWorker' in navigator) {
