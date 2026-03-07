@@ -1,5 +1,5 @@
 import React from 'react';
-import { DeleteIcon } from 'lucide-animated';
+import { Delete } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
 
@@ -69,7 +69,7 @@ export const Numpad: React.FC<NumpadProps> = ({ onType, onClear, onSubmit, disab
           disabled={disabled}
           className={`${k.color} text-white font-bold text-3xl sm:text-4xl p-3 sm:p-6 rounded-2xl shadow-md transform transition-all disabled:opacity-50 flex items-center justify-center`}
         >
-          {k.val === 'C' ? <DeleteIcon size={28} className="sm:w-8 sm:h-8" /> : k.label}
+          {k.val === 'C' ? <Delete size={28} className="sm:w-8 sm:h-8" /> : k.label}
         </motion.button>
       ))}
     </div>

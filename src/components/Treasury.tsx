@@ -1,8 +1,9 @@
-import { HeartIcon, SparklesIcon, LockKeyholeOpenIcon, FlameIcon, ZapIcon, ArrowLeftIcon } from 'lucide-animated';
+import { Heart, Sparkles, LockKeyholeOpen, Flame, Zap, ArrowLeft } from 'lucide-react';
 import { Star, Award, Gift, Gem, Crown, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Worlds } from '../lib/GameData';
 import { useWebHaptics } from 'web-haptics/react';
+import { RewardProgressBar, REWARDS_THRESHOLDS } from './RewardProgressBar';
 
 interface TreasuryProps {
   playerName: string;
@@ -14,11 +15,11 @@ interface TreasuryProps {
 /** Sticker icons and names for each table in learning order. */
 const STICKER_CONFIG = [
   { title: 'Starter', icon: Star, color: 'text-yellow-500' },
-  { title: 'Verkenner', icon: ZapIcon, color: 'text-blue-500' },
+  { title: 'Verkenner', icon: Zap, color: 'text-blue-500' },
   { title: 'Rekenwonder', icon: Award, color: 'text-purple-500' },
-  { title: 'Slimmerik', icon: SparklesIcon, color: 'text-cyan-500' },
-  { title: 'Doorzetter', icon: HeartIcon, color: 'text-red-500' },
-  { title: 'Doorbreker', icon: FlameIcon, color: 'text-orange-500' },
+  { title: 'Slimmerik', icon: Sparkles, color: 'text-cyan-500' },
+  { title: 'Doorzetter', icon: Heart, color: 'text-red-500' },
+  { title: 'Doorbreker', icon: Flame, color: 'text-orange-500' },
   { title: 'Ster', icon: Crown, color: 'text-amber-500' },
   { title: 'Held', icon: Shield, color: 'text-green-500' },
   { title: 'Kampioen', icon: Gem, color: 'text-pink-500' },
@@ -50,9 +51,9 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
             trigger('nudge');
             onBack();
           }}
-          className="p-2 sm:p-3 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-50"
+          className="flex items-center justify-center p-2 sm:p-3 bg-white rounded-full shadow-md text-amber-600 hover:bg-amber-50"
         >
-          <ArrowLeftIcon className="w-6 h-6 md:w-8 md:h-8" />
+          <ArrowLeft className="w-6 h-6 md:w-8 md:h-8" />
         </button>
         <h1 className="text-xl sm:text-2xl md:text-4xl font-bold text-amber-900 flex items-center gap-2 md:gap-3">
           <Gift className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" /> Mijn Schatkist
@@ -60,11 +61,7 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
       </div>
 
       {/* Progress display */}
-      <div className="bg-white rounded-2xl p-4 mb-4 sm:mb-6 text-center border-2 border-amber-200 shadow">
-        <p className="text-lg sm:text-xl font-bold text-amber-800">
-          {earnedCount} van {stickers.length} stickers verdiend! 🌟
-        </p>
-      </div>
+      <RewardProgressBar earnedCount={earnedCount} totalCount={stickers.length} className="mb-4 sm:mb-6" />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-12">
         {stickers.map((s, i) => {
@@ -94,7 +91,7 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
       <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-lg border-2 sm:border-4 border-amber-300 max-w-2xl mx-auto w-full mb-4 sm:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
           <h2 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
-            <LockKeyholeOpenIcon /> Speciale Ouders Sectie
+            <LockKeyholeOpen /> Speciale Ouders Sectie
           </h2>
           <button
             type="button"
@@ -115,11 +112,11 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
           Heeft de Panda weer een nieuwe tafel behaald? Dan mag daar natuurlijk een <em>echte</em> beloning tegenover staan!
         </p>
         <ul className="list-disc pl-6 space-y-2 text-amber-900 text-base sm:text-lg font-medium">
-          <li>2 tafels uitgespeeld = 15 minuten extra digitale speeltijd</li>
-          <li>4 tafels uitgespeeld = Samen een spelletje kiezen</li>
-          <li>6 tafels uitgespeeld = Pannenkoeken eten!</li>
-          <li>8 tafels uitgespeeld = Samen naar de speeltuin</li>
-          <li>Alle 10 tafels = Een heel speciaal cadeau! 🎁</li>
+          {REWARDS_THRESHOLDS.map((reward) => (
+            <li key={reward.count}>
+              {reward.count === 10 ? 'Alle 10 tafels' : `${reward.count} tafels uitgespeeld`} = {reward.label}
+            </li>
+          ))}
         </ul>
       </div>
     </div>

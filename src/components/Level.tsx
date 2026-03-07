@@ -6,8 +6,7 @@ import confetti from 'canvas-confetti';
 import { playSound, initAudioContext } from '../lib/audio';
 import { speak, stopSpeaking, isTtsConfigured, ensureAudioUnlocked } from '../lib/tts';
 import { VisualHint } from './VisualHint';
-import { ArrowLeftIcon } from 'lucide-animated';
-import { CheckCircle2, Lightbulb, Volume2, Gift } from 'lucide-react';
+import { CheckCircle2, Lightbulb, Volume2, Gift, ArrowLeft } from 'lucide-react';
 import { useWebHaptics } from 'web-haptics/react';
 
 /** Reward milestones: number of completed tables → reward text. */
@@ -266,9 +265,9 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             trigger('nudge');
             onBack();
           }}
-          className="p-2 sm:p-3 bg-white rounded-full shadow-md text-sky-500 hover:bg-sky-50 transition"
+          className="flex items-center justify-center p-2 sm:p-3 bg-white rounded-full shadow-md text-sky-500 hover:bg-sky-50 transition"
         >
-          <ArrowLeftIcon size={24} className="sm:w-8 sm:h-8" />
+          <ArrowLeft size={24} className="sm:w-8 sm:h-8" />
         </button>
         <div className="flex-1 mx-4 sm:mx-8 relative h-3 sm:h-4 bg-sky-200 rounded-full overflow-hidden">
           <motion.div
@@ -283,7 +282,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       </div>
 
       {/* Main Play Area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full z-10 gap-2 sm:gap-8 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full z-10 gap-4 sm:gap-8 overflow-hidden">
 
         {/* Panda + Balloon */}
         <div className="flex flex-col items-center relative">
@@ -295,68 +294,63 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -20 }}
               transition={{ type: 'spring', stiffness: 250, damping: 22 }}
-              className="bg-white border-3 sm:border-4 border-sky-300 rounded-[1.25rem] sm:rounded-[3rem] p-2 sm:p-8 shadow-2xl relative flex items-center gap-1.5 sm:gap-4"
+              className="flex flex-col items-center"
             >
-              <span className="text-xl sm:text-4xl md:text-6xl font-bold text-dark">
-                {currentProblem.question}
-              </span>
+              <div className="bg-white rounded-[1.25rem] sm:rounded-[3rem] p-3 sm:p-8 shadow-2xl relative flex items-center gap-2 sm:gap-4 z-20">
+                <span className="text-3xl sm:text-4xl md:text-6xl font-bold text-dark">
+                  {currentProblem.question}
+                </span>
 
-              {/* Action buttons */}
-              <div className="flex flex-col gap-2">
-                {/* Hint button */}
-                {currentProblem.factors && (
-                  <motion.button
-                    type="button"
-                    onClick={() => setShowHint(true)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 active:bg-yellow-300 transition-colors text-yellow-600 flex-shrink-0"
-                    aria-label="Toon een hint"
-                  >
-                    <Lightbulb size={20} className="sm:w-6 sm:h-6" />
-                  </motion.button>
-                )}
+                {/* Action buttons */}
+                <div className="flex flex-col gap-2">
+                  {/* Hint button */}
+                  {currentProblem.factors && (
+                    <motion.button
+                      type="button"
+                      onClick={() => setShowHint(true)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 sm:p-3 rounded-full bg-yellow-100 hover:bg-yellow-200 active:bg-yellow-300 transition-colors text-yellow-600 flex-shrink-0"
+                      aria-label="Toon een hint"
+                    >
+                      <Lightbulb size={24} className="sm:w-8 sm:h-8" />
+                    </motion.button>
+                  )}
 
-                {/* TTS button */}
-                {hasTts && (
-                  <motion.button
-                    type="button"
-                    onClick={() => { initAudioContext(); ensureAudioUnlocked(); speakQuestion(currentProblem); }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 active:bg-sky-300 transition-colors text-sky-600 flex-shrink-0"
-                    aria-label="Lees de vraag voor"
-                  >
-                    <Volume2 size={20} className="sm:w-6 sm:h-6" />
-                  </motion.button>
-                )}
+                  {/* TTS button */}
+                  {hasTts && (
+                    <motion.button
+                      type="button"
+                      onClick={() => { initAudioContext(); ensureAudioUnlocked(); speakQuestion(currentProblem); }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="p-2 sm:p-3 rounded-full bg-sky-100 hover:bg-sky-200 active:bg-sky-300 transition-colors text-sky-600 flex-shrink-0"
+                      aria-label="Lees de vraag voor"
+                    >
+                      <Volume2 size={24} className="sm:w-8 sm:h-8" />
+                    </motion.button>
+                  )}
+                </div>
+              </div>
+
+              {/* Balloon tail — sibling of balloon so it can connect visually */}
+              <div className="relative -mt-[4px] sm:-mt-[5px] z-30 mb-0 sm:mb-4">
+                <svg
+                  className="w-[44px] h-[26px] sm:w-[48px] sm:h-[30px] overflow-visible block mx-auto"
+                  viewBox="0 0 48 30"
+                  preserveAspectRatio="none"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* The actual tail triangle */}
+                  <polygon
+                    points="6,0 24,28 42,0"
+                    fill="white"
+                  />
+                </svg>
               </div>
             </motion.div>
           </AnimatePresence>
-
-          {/* Balloon tail — sibling of balloon so it can overlap the border */}
-          <div className="relative -mt-[4px] sm:-mt-[5px] z-30 mb-0 sm:mb-4">
-            <svg
-              className="w-[36px] h-[22px] sm:w-[48px] sm:h-[30px] overflow-visible block mx-auto"
-              viewBox="0 0 48 30"
-              preserveAspectRatio="none"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* White rect to cover the balloon border at the connection — drawn first */}
-              <rect x="2" y="-8" width="44" height="12" fill="white" />
-              {/* The actual tail triangle with matching border */}
-              <polygon
-                points="6,0 24,28 42,0"
-                fill="white"
-                stroke="#7dd3fc"
-                strokeWidth="3"
-                strokeLinejoin="round"
-              />
-              {/* White rect on top to cover the triangle's top stroke */}
-              <rect x="2" y="-8" width="44" height="10" fill="white" />
-            </svg>
-          </div>
 
           <motion.div
             animate={
@@ -379,7 +373,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 64 64"
-              className="w-16 h-16 sm:w-36 sm:h-36 z-20 drop-shadow-lg"
+              className="w-24 h-24 sm:w-36 sm:h-36 z-20 drop-shadow-lg"
             >
               {/* Left ear */}
               <circle cx="14" cy="14" r="12" fill="#1a1a2e" />
@@ -427,7 +421,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
         <motion.div
           animate={feedback === 'shake' ? { x: [0, -8, 8, -8, 8, 0] } : { x: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className={`h-12 w-44 sm:h-24 sm:w-64 bg-white rounded-2xl sm:rounded-3xl border-4 shadow-inner flex items-center justify-center relative overflow-hidden transition-colors ${
+          className={`h-16 w-52 sm:h-24 sm:w-64 bg-white rounded-2xl sm:rounded-3xl border-4 shadow-inner flex items-center justify-center relative overflow-hidden transition-colors ${
             feedback === 'success' ? 'border-green-400 bg-green-50' :
             feedback === 'shake' ? 'border-orange-300 bg-orange-50' :
             'border-sky-300'
@@ -445,7 +439,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               </motion.div>
             )}
           </AnimatePresence>
-          <span className={`text-3xl sm:text-4xl md:text-6xl font-bold font-mono tracking-wider ${
+          <span className={`text-4xl sm:text-4xl md:text-6xl font-bold font-mono tracking-wider ${
             feedback === 'success' ? 'text-green-600' :
             feedback === 'shake' ? 'text-orange-600' :
             'text-dark'

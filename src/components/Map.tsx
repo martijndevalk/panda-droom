@@ -1,9 +1,9 @@
 import React from 'react';
 import { Worlds } from '../lib/GameData';
-import { LockIcon, PlayIcon } from 'lucide-animated';
-import { Star } from 'lucide-react';
+import { Lock, Play, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
+import { RewardProgressBar } from './RewardProgressBar';
 
 interface MapProps {
   playerName: string;
@@ -28,6 +28,10 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
         </h1>
         <p className="text-base md:text-lg text-dark/80 mt-2 font-medium">Voltooi de avonturen en verdien stickers!</p>
       </motion.div>
+
+      <div className="w-full max-w-lg mb-8 z-10 px-4 sm:px-0">
+        <RewardProgressBar earnedCount={Worlds.filter(w => unlockedWorlds.includes(w.id)).length} totalCount={Worlds.length} />
+      </div>
 
       <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-lg mb-10 sm:mb-20 z-10">
         {Worlds.map((w, index) => {
@@ -71,7 +75,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
                 transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 }}
                 className={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full flex justify-center items-center shadow-inner ${isUnlocked ? 'bg-green-100 text-green-500' : 'bg-gray-300 text-gray-500'}`}
               >
-                {isUnlocked ? <PlayIcon className="ml-1 w-6 h-6 md:w-7 md:h-7" size={24} /> : <LockIcon className="w-5 h-5 md:w-6 md:h-6" size={20} />}
+                {isUnlocked ? <Play className="ml-1 w-6 h-6 md:w-7 md:h-7" size={24} /> : <Lock className="w-5 h-5 md:w-6 md:h-6" size={20} />}
               </motion.div>
             </motion.button>
           );

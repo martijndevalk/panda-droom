@@ -108,23 +108,27 @@ function getApiKey(): string | null {
  * Returns a promise that resolves when playback starts
  * (not when it finishes).
  *
- * If TTS is not configured (no API key), fails silently.
+ * If TTS is not configured (no API key), falls back to native Web Speech.
  */
 export async function speak(text: string): Promise<void> {
   if (typeof window === 'undefined') return;
 
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    console.warn('[TTS] No ElevenLabs API key found. Set PUBLIC_ELEVENLABS_API_KEY in your .env file.');
-    return;
-  }
-
   // Stop any currently playing audio
   stopSpeaking();
 
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    console.warn('[TTS] No ElevenLabs API key found. Falling back to native Web Speech API.');
+    speakNative(text);
+    return;
+  }
+
   // Ensure the shared element exists and is unlocked (await on Android)
   await ensureAudioUnlocked();
-  if (!sharedAudio) return;
+  if (!sharedAudio) {
+    speakNative(text);
+    return;
+  }
 
   try {
     let audioUrl = audioCache.get(text);
@@ -155,6 +159,8 @@ export async function speak(text: string): Promise<void> {
       if (!response.ok) {
         const errorBody = await response.text();
         console.error(`[TTS] ElevenLabs API error: ${response.status} ${response.statusText}`, errorBody);
+        console.warn('[TTS] Falling back to native Web Speech API.');
+        speakNative(text);
         return;
       }
 
@@ -172,19 +178,33 @@ export async function speak(text: string): Promise<void> {
 
     await sharedAudio.play();
   } catch (err) {
-    console.error('[TTS] Failed to speak:', err);
+    console.error('[TTS] Failed to speak with ElevenLabs, falling back to native TTS:', err);
+    speakNative(text);
   }
+}
+
+/** Fallback to the browser's native text-to-speech. */
+function speakNative(text: string) {
+  if (!('speechSynthesis' in window)) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'nl-NL';
+  utterance.rate = 0.9; // Just slightly slower, pleasant for kids
+  window.speechSynthesis.speak(utterance);
 }
 
 /** Stop any currently playing TTS audio. */
 export function stopSpeaking(): void {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
   if (sharedAudio) {
     sharedAudio.pause();
     sharedAudio.currentTime = 0;
   }
 }
 
-/** Check whether TTS is configured (has an API key). */
+/** Check whether TTS is configured (has an API key or native support). */
 export function isTtsConfigured(): boolean {
-  return !!getApiKey();
+  if (typeof window === 'undefined') return false;
+  return !!getApiKey() || 'speechSynthesis' in window;
 }
