@@ -284,7 +284,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               <button
                 type="button"
                 onClick={() => { trigger('success'); onComplete(worldId, 'next'); }}
-                className="btn btn-success btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
+                className="btn bg-[#388E3C] hover:bg-[#2e7d32] btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
               >
                 Volgend Level
               </button>
@@ -292,7 +292,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             <button
               type="button"
               onClick={() => { trigger('nudge'); onComplete(worldId, 'map'); }}
-              className="btn btn-info btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] mt-2"
+              className="btn bg-[#0288D1] hover:bg-[#0277bd] btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] mt-2"
             >
               Terug naar Map
             </button>

@@ -83,7 +83,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
             type="submit"
             disabled={!name.trim()}
             className={`btn btn-lg w-full rounded-2xl text-lg sm:text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] ${
-              name.trim() ? 'btn-success text-white' : 'btn-disabled bg-gray-300'
+              name.trim() ? 'bg-[#388E3C] hover:bg-[#2e7d32] text-white' : 'bg-gray-300 text-gray-400 opacity-50 cursor-not-allowed'
             }`}
           >
             <Play size={24} className="text-white" />

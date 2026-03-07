@@ -106,7 +106,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
               className={`btn h-auto px-4 py-4 md:px-6 md:py-6 group rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-between relative overflow-hidden transition-all border-4 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] ${
                 isUnlocked
                   ? 'bg-white border-green-400 hover:border-green-500 cursor-pointer text-dark'
-                  : 'btn-disabled bg-gray-200 border-gray-400 opacity-80 cursor-not-allowed'
+                  : 'bg-gray-200 border-gray-400 opacity-80 cursor-not-allowed'
               }`}
             >
               <div className="text-left">

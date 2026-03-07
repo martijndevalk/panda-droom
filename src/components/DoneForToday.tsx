@@ -97,7 +97,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
             trigger('success');
             onBackToMap();
           }}
-          className="btn btn-success btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-all"
+          className="btn bg-[#388E3C] hover:bg-[#2e7d32] btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-all"
         >
           Terug naar de kaart 🗺️
         </motion.button>

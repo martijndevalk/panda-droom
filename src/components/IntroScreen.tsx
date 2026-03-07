@@ -233,7 +233,7 @@ export function IntroScreen({ table, onComplete }: IntroScreenProps) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleContinue}
-              className="btn btn-success btn-lg rounded-2xl text-white text-xl sm:text-2xl mt-4 border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
+              className="btn bg-[#388E3C] hover:bg-[#2e7d32] btn-lg rounded-2xl text-white text-xl sm:text-2xl mt-4 border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
             >
               Door naar de sommen! 🚀
             </motion.button>
