@@ -31,6 +31,7 @@
   border-radius: 50%;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   animation: cloudFloat 14s ease-in-out infinite;
+  z-index: 0;
 }
 
 .cloud::before,
@@ -132,7 +133,7 @@
     0 0 20px rgba(253, 216, 53, 0.6),
     0 0 60px rgba(253, 216, 53, 0.3),
     0 0 100px rgba(253, 216, 53, 0.15);
-  z-index: 1;
+  z-index: 0;
   animation: sunPulse 4s ease-in-out infinite;
 }
 

@@ -45,7 +45,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         initial={{ y: -40, opacity: 0, scale: 0.8 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1, mass: 0.8 }}
-        className="mb-4 z-10"
+        className="mb-4 relative z-10"
       >
         <motion.div
           animate={{ y: [0, -6, 0] }}

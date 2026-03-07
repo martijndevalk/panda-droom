@@ -56,7 +56,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
         initial={{ y: -40, opacity: 0, scale: 0.9 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 14, mass: 0.8 }}
-        className="text-center mb-6 sm:mb-10 relative flex flex-col items-center"
+        className="text-center mb-6 sm:mb-10 relative z-10 flex flex-col items-center"
       >
         <div className="flex items-center gap-2 sm:gap-4 relative inline-flex">
           <h1 className="title-font text-3xl md:text-4xl lg:text-5xl font-black text-dark drop-shadow-md">
@@ -66,7 +66,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
         <p className="text-base md:text-lg text-dark/80 mt-2 font-medium">Voltooi de avonturen en verdien stickers!</p>
       </motion.div>
 
-      <div className="w-full max-w-lg mb-8 z-10 px-4 sm:px-0">
+      <div className="w-full max-w-lg mb-8 relative z-10 px-4 sm:px-0">
         <RewardProgressBar
           earnedCount={earnedCount}
           totalCount={totalCount}
@@ -77,7 +77,7 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
         />
       </div>
 
-      <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-lg mb-10 sm:mb-20 z-10">
+      <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-lg mb-10 sm:mb-20 relative z-10">
         {Worlds.map((w, index) => {
           const isUnlocked = unlockedWorlds.includes(w.id);
           return (

@@ -318,7 +318,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       <div className="cloud cloud--md absolute opacity-45" style={{ bottom: '30%', left: '50%' }} />
 
       {/* Header / Nav */}
-      <div className="w-full max-w-2xl flex items-center justify-between mb-2 sm:mb-8 z-10 pt-1 sm:pt-4">
+      <div className="w-full max-w-2xl flex items-center justify-between mb-2 sm:mb-8 relative z-10 pt-1 sm:pt-4">
         <button
           type="button"
           onClick={() => {
@@ -342,7 +342,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       </div>
 
       {/* Main Play Area */}
-      <div className="flex-1 min-h-[min-content] flex flex-col items-center justify-center w-full z-10 gap-[clamp(0.5rem,3dvh,2rem)] sm:gap-8 overflow-visible py-2 sm:py-0">
+      <div className="flex-1 min-h-[min-content] flex flex-col items-center justify-center w-full relative z-10 gap-[clamp(0.5rem,3dvh,2rem)] sm:gap-8 overflow-visible py-2 sm:py-0">
 
         {/* Panda + Balloon */}
         <div className="flex flex-col items-center relative">
@@ -462,7 +462,7 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
         </div>
       </div>
 
-      <div className="w-full pb-2 sm:pb-8 z-10 flex flex-col items-center shrink-0">
+      <div className="w-full pb-2 sm:pb-8 relative z-10 flex flex-col items-center shrink-0">
         <Numpad
           onType={handleType}
           onClear={clearInput}
