@@ -23,7 +23,7 @@ export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
   const handleSpeak = () => {
     initAudioContext();
     ensureAudioUnlocked();
-    speak(`Hint! ${groups} groepjes van ${dotsPerGroup}. Tel de bolletjes of gebruik de getallen!`);
+    speak(`Hint! ${groups} groepjes van ${dotsPerGroup}. Tel alle bolletjes!`);
   };
 
   useEffect(() => {
@@ -105,23 +105,8 @@ export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
               ))}
             </div>
 
-            {/* Running total helper */}
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {Array.from({ length: groups }, (_, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: (i + 1) * 0.15 }}
-                  className="text-lg font-bold text-sky-600 bg-sky-100 px-3 py-1 rounded-full"
-                >
-                  {(i + 1) * dotsPerGroup}
-                </motion.span>
-              ))}
-            </div>
-
-            <p className="text-center text-gray-500 mt-4 text-sm font-medium">
-              Tel de bolletjes of gebruik de getallen!
+            <p className="text-center text-gray-500 mt-6 text-sm font-medium">
+              Tel alle bolletjes!
             </p>
           </motion.div>
         </motion.div>

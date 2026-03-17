@@ -6,9 +6,11 @@ import confetti from 'canvas-confetti';
 import { playSound, initAudioContext } from '../lib/audio';
 import { speak, stopSpeaking, isTtsConfigured, ensureAudioUnlocked } from '../lib/tts';
 import { VisualHint } from './VisualHint';
-import { CheckCircle2, Lightbulb, Gift, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Lightbulb, Gift, ArrowLeft, Leaf } from 'lucide-react';
 import { useWebHaptics } from 'web-haptics/react';
 import { PandaAvatar } from './PandaAvatar';
+import { recordAnswer, addLeaves, getLeafCount } from '../lib/performanceTracker';
+import { selectReviewForLevel, mixReviewIntoSequence } from '../lib/reviewSelector';
 
 /** Reward milestones: number of completed tables → reward text. */
 const REWARD_MILESTONES: { threshold: number; emoji: string; text: string }[] = [
@@ -24,9 +26,13 @@ interface LevelProps {
   unlockedWorlds: string[];
   onBack: () => void;
   onComplete: (worldId: string, action: 'map' | 'next') => void;
+  /** When true, this is a review/practice session — different rewards, no daily limit */
+  isReview?: boolean;
+  /** Pre-generated review sequence (used by PracticeSquare) */
+  reviewSequence?: MathProblem[];
 }
 
-export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, onComplete }) => {
+export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, onComplete, isReview = false, reviewSequence }) => {
   const world = Worlds.find(w => w.id === worldId)!;
   const { trigger } = useWebHaptics();
   const [sequence, setSequence] = useState<MathProblem[]>([]);
@@ -36,16 +42,31 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   const [pandaState, setPandaState] = useState<'idle' | 'happy' | 'thinking' | 'error'>('idle');
   const [isLevelComplete, setIsLevelComplete] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [hintJustUnlocked, setHintJustUnlocked] = useState(false);
   const [hasSpokenComplete, setHasSpokenComplete] = useState(false);
+  const [reviewLeavesEarned, setReviewLeavesEarned] = useState(0);
+  const [reviewStreak, setReviewStreak] = useState(0);
 
   const hasTts = isTtsConfigured();
   const hasSpokenRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    setSequence(world.generateSequence());
+    if (reviewSequence) {
+      // Practice mode — use pre-generated review sequence
+      setSequence(reviewSequence);
+    } else {
+      // Normal mode — generate sequence and mix in review questions
+      const baseSequence = world.generateSequence();
+      const reviewQuestions = selectReviewForLevel(world.table, unlockedWorlds);
+      const mixed = mixReviewIntoSequence(baseSequence, reviewQuestions);
+      setSequence(mixed);
+    }
     hasSpokenRef.current = new Set();
     setHasSpokenComplete(false);
-  }, [world]);
+    setReviewLeavesEarned(0);
+    setReviewStreak(0);
+  }, [world, reviewSequence]);
 
   const currentProblem = sequence[currentIndex];
 
@@ -143,11 +164,27 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       playSound('success');
       trigger('success');
 
+      // Track performance
+      if (currentProblem.factKey) {
+        recordAnswer(currentProblem.factKey, true);
+      }
+
+      // Award blaadjes for review questions
+      if (currentProblem.isReview) {
+        const newStreak = reviewStreak + 1;
+        setReviewStreak(newStreak);
+        const leafBonus = newStreak >= 3 ? 3 : 1; // streak bonus!
+        addLeaves(leafBonus);
+        setReviewLeavesEarned(prev => prev + leafBonus);
+      } else {
+        setReviewStreak(0);
+      }
+
       confetti({
         particleCount: 50,
         spread: 60,
         origin: { y: 0.8 },
-        colors: ['#4ade80', '#fbbf24'],
+        colors: currentProblem.isReview ? ['#86efac', '#4ade80', '#22c55e'] : ['#4ade80', '#fbbf24'],
       });
 
       setTimeout(() => {
@@ -155,6 +192,8 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
         setInputVal('');
         setPandaState('idle');
         setShowHint(false);
+        setWrongAttempts(0);
+        setHintJustUnlocked(false);
 
         if (currentIndex < sequence.length - 1) {
           setCurrentIndex(prev => prev + 1);
@@ -177,7 +216,26 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       setPandaState('error');
       trigger('error');
       playSound('fail');
-      speak('Probeer het nog eens, je kan het!');
+
+      // Track performance
+      if (currentProblem.factKey) {
+        recordAnswer(currentProblem.factKey, false);
+      }
+
+      // Reset review streak on wrong answer
+      setReviewStreak(0);
+
+      const newWrongAttempts = wrongAttempts + 1;
+      setWrongAttempts(newWrongAttempts);
+
+      if (newWrongAttempts === 1) {
+        speak('Probeer het nog eens, je kan het! Ik heb een idee voor je!');
+        setHintJustUnlocked(true);
+        // Auto-dismiss the "unlocked" badge after a few seconds
+        setTimeout(() => setHintJustUnlocked(false), 4000);
+      } else {
+        speak('Probeer het nog eens, je kan het!');
+      }
 
       setTimeout(() => {
         setFeedback('none');
@@ -193,23 +251,80 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
   const progress = ((currentIndex) / sequence.length) * 100;
 
   if (isLevelComplete) {
+    // Review/practice session complete screen
+    if (isReview) {
+      return (
+        <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center p-4 relative overflow-y-auto bg-sky-200">
+          <div className="sun sun--sm absolute top-4 right-6" />
+          <div className="cloud cloud--lg absolute opacity-50" style={{ top: '6%', left: '5%' }} />
+          <div className="cloud cloud--md absolute opacity-55" style={{ top: '15%', right: '20%' }} />
+          <div className="cloud cloud--sm absolute opacity-45" style={{ top: '10%', left: '40%' }} />
+          <div className="cloud cloud--xl absolute opacity-35" style={{ top: '30%', left: '2%' }} />
+
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] max-w-sm w-full text-center border-4 border-dark shadow-[8px_8px_0px_theme(colors.dark)] flex flex-col items-center relative z-10"
+          >
+            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-green-100 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-inner relative">
+              <span className="text-6xl sm:text-8xl">🍃</span>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
+                className="absolute inset-0 border-4 border-dashed border-green-400 rounded-full z-0 opacity-50"
+              />
+            </div>
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <h2 className="title-font text-3xl sm:text-4xl font-black text-green-600 tracking-tight drop-shadow-sm">Klaar met oefenen!</h2>
+            </div>
+            <p className="text-xl sm:text-2xl text-gray-700 mb-2 font-medium">
+              Goed geoefend!
+            </p>
+            {reviewLeavesEarned > 0 && (
+              <motion.p
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 12, delay: 0.3 }}
+                className="text-green-500 font-extrabold text-2xl sm:text-3xl mt-2 mb-4 drop-shadow-sm flex items-center gap-2 justify-center"
+              >
+                <Leaf className="w-7 h-7 sm:w-8 sm:h-8" /> +{reviewLeavesEarned} Blaadjes!
+              </motion.p>
+            )}
+            <p className="text-sm text-gray-500 mb-6">
+              Totaal: {getLeafCount()} blaadjes 🍃
+            </p>
+
+            <div className="flex flex-col gap-3 sm:gap-4 w-full">
+              <button
+                type="button"
+                onClick={() => { trigger('nudge'); onBack(); }}
+                className="btn bg-[#388E3C] hover:bg-[#2e7d32] btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
+              >
+                Terug naar Oefenplein
+              </button>
+              <button
+                type="button"
+                onClick={() => { trigger('nudge'); onComplete(worldId, 'map'); }}
+                className="btn bg-[#0288D1] hover:bg-[#0277bd] btn-lg w-full rounded-2xl text-white text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)]"
+              >
+                Terug naar Kaart
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    // Normal level complete screen
     const currentIndexInGame = Worlds.findIndex(w => w.id === worldId);
     const hasNext = currentIndexInGame >= 0 && currentIndexInGame < Worlds.length - 1;
 
-    // Count completed tables (unlocked includes current + the next one that just got unlocked)
-    // The current world is being completed now, so count unlocked worlds
-    // unlockedWorlds already includes the *next* world by the time Level renders complete,
-    // but the current world was already in the list. We count how many worlds
-    // the player has actually *finished* — that's all unlocked minus 1 (the one they haven't played yet),
-    // but since this level was just completed, we count all unlocked that are <= current index.
     const completedCount = unlockedWorlds.filter(id => {
       const idx = Worlds.findIndex(w => w.id === id);
       return idx >= 0 && idx <= currentIndexInGame;
     }).length;
 
-    // Find the highest milestone they just reached
     const earnedMilestone = REWARD_MILESTONES.filter(m => m.threshold <= completedCount).pop();
-    // Check if they *just* crossed this milestone threshold (i.e. completedCount exactly equals threshold)
     const justEarnedMilestone = earnedMilestone && earnedMilestone.threshold === completedCount
       ? earnedMilestone
       : null;
@@ -249,6 +364,18 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             Je hebt de tafel van {world.table} gehaald! <br/>
             <strong className="text-green-500 font-extrabold text-2xl sm:text-3xl mt-2 block drop-shadow-sm">+ 1 Bamboetak!</strong>
           </p>
+
+          {/* Review blaadjes earned during this level */}
+          {reviewLeavesEarned > 0 && (
+            <motion.p
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 12, delay: 0.2 }}
+              className="text-green-500 font-bold text-lg mb-4 flex items-center gap-1 justify-center"
+            >
+              <Leaf className="w-5 h-5" /> +{reviewLeavesEarned} blaadjes van oefensommen!
+            </motion.p>
+          )}
 
           {/* Reward milestone banner */}
           {justEarnedMilestone && (
@@ -357,6 +484,12 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
               className="flex flex-col items-center"
             >
               <div className="bg-white rounded-[1.25rem] sm:rounded-[3rem] p-3 sm:p-5 sm:px-8 shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark relative flex items-center gap-2 sm:gap-4 z-20 shrink-0">
+                {/* Review label */}
+                {currentProblem.isReview && (
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-green-100 text-green-700 text-xs sm:text-sm font-bold px-3 py-0.5 rounded-full border-2 border-green-300 whitespace-nowrap z-30">
+                    ⭐ Herhaling!
+                  </div>
+                )}
                 <div className="text-[clamp(1.75rem,5dvh,3.75rem)] font-bold font-bubble flex items-center gap-2 sm:gap-4 text-dark leading-none">
                   <span>{currentProblem.question.replace('?', '').trim()}</span>
                   <motion.div
@@ -380,21 +513,52 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
 
                 {/* Action buttons */}
                 <div className="flex flex-col gap-2 ml-2 sm:ml-4 border-l-2 border-slate-100 pl-2 sm:pl-4">
-                  {/* Hint button */}
-                  {currentProblem.factors && (
-                    <motion.button
-                      type="button"
-                      onClick={() => setShowHint(true)}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 sm:p-3 rounded-full bg-yellow-100 hover:bg-yellow-200 active:bg-yellow-300 transition-colors text-yellow-600 flex-shrink-0"
-                      aria-label="Toon een hint"
-                    >
-                      <Lightbulb size={24} className="sm:w-8 sm:h-8" />
-                    </motion.button>
-                  )}
+                  {/* Hint button — only shown after at least 1 wrong attempt */}
+                  <AnimatePresence>
+                    {currentProblem.factors && wrongAttempts >= 1 && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="relative"
+                      >
+                        <motion.button
+                          type="button"
+                          onClick={() => setShowHint(true)}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          animate={hintJustUnlocked ? {
+                            scale: [1, 1.2, 1],
+                            rotate: [0, -10, 10, -10, 0],
+                          } : {}}
+                          transition={hintJustUnlocked ? {
+                            duration: 0.6,
+                            repeat: 2,
+                            ease: 'easeInOut',
+                          } : {}}
+                          className="p-2 sm:p-3 rounded-full bg-yellow-100 hover:bg-yellow-200 active:bg-yellow-300 transition-colors text-yellow-600 flex-shrink-0 relative"
+                          aria-label="Toon een hint"
+                        >
+                          <Lightbulb size={24} className="sm:w-8 sm:h-8" />
+                        </motion.button>
 
-
+                        {/* "Panda heeft een idee!" tooltip */}
+                        <AnimatePresence>
+                          {hintJustUnlocked && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="absolute bottom-full right-0 mb-2 sm:bottom-auto sm:right-full sm:top-1/2 sm:-translate-y-1/2 sm:mb-0 sm:mr-2 bg-yellow-50 border-2 border-yellow-300 text-yellow-700 px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap text-sm font-bold z-30"
+                            >
+                              💡 Panda heeft een idee!
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
@@ -448,11 +612,11 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
             <AnimatePresence>
               {feedback === 'shake' && (
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                  className="absolute top-0 -right-48 bg-sky-100 border-2 border-sky-300 text-sky-700 p-4 rounded-3xl shadow-xl w-40 z-30 font-bold"
+                  className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:top-0 sm:mt-0 sm:left-full sm:translate-x-0 sm:ml-6 bg-sky-100 border-2 border-sky-300 text-sky-700 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-xl w-max max-w-[200px] z-30 font-bold text-center"
                 >
                   Bijna! Probeer het nog eens 💪
                 </motion.div>

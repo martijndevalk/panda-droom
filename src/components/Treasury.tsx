@@ -1,5 +1,5 @@
 import { Heart, Sparkles, LockKeyholeOpen, Flame, Zap, ArrowLeft } from 'lucide-react';
-import { Star, Award, Gift, Gem, Crown, Shield } from 'lucide-react';
+import { Star, Award, Gift, Gem, Crown, Shield, Leaf } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Worlds } from '../lib/GameData';
 import { useWebHaptics } from 'web-haptics/react';
@@ -7,6 +7,7 @@ import { RewardProgressBar, REWARDS_THRESHOLDS } from './RewardProgressBar';
 import { speak, stopSpeaking, ensureAudioUnlocked } from '../lib/tts';
 import { initAudioContext, playSound } from '../lib/audio';
 import React, { useEffect, useRef } from 'react';
+import { getStats } from '../lib/performanceTracker';
 
 interface TreasuryProps {
   playerName: string;
@@ -121,6 +122,33 @@ export const Treasury: React.FC<TreasuryProps> = ({ playerName, unlockedWorlds, 
           );
         })}
       </div>
+
+      {/* Oefen-statistieken */}
+      {(() => {
+        const practiceStats = getStats();
+        if (practiceStats.leaves === 0 && practiceStats.totalReviewSessions === 0) return null;
+        return (
+          <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark max-w-2xl mx-auto w-full mb-4 sm:mb-8">
+            <h2 className="title-font text-2xl font-black text-green-800 flex items-center gap-2 mb-4">
+              <Leaf className="w-6 h-6" /> Hoe goed oefen jij?
+            </h2>
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-green-50 p-3 sm:p-4 rounded-xl border-2 border-green-200 text-center">
+                <p className="text-2xl sm:text-3xl font-black text-green-600">🍃 {practiceStats.leaves}</p>
+                <p className="text-xs sm:text-sm font-medium text-green-700 mt-1">Blaadjes</p>
+              </div>
+              <div className="bg-blue-50 p-3 sm:p-4 rounded-xl border-2 border-blue-200 text-center">
+                <p className="text-2xl sm:text-3xl font-black text-blue-600">📝 {practiceStats.totalReviewSessions}</p>
+                <p className="text-xs sm:text-sm font-medium text-blue-700 mt-1">Keer geoefend</p>
+              </div>
+              <div className="bg-amber-50 p-3 sm:p-4 rounded-xl border-2 border-amber-200 text-center">
+                <p className="text-2xl sm:text-3xl font-black text-amber-600">🔥 {practiceStats.longestStreak}</p>
+                <p className="text-xs sm:text-sm font-medium text-amber-700 mt-1">Meeste goed op rij</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark max-w-2xl mx-auto w-full mb-4 sm:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">

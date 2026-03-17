@@ -1,20 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { Worlds } from '../lib/GameData';
-import { Lock, Play, Star } from 'lucide-react';
+import { Lock, Play, Star, Leaf } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useWebHaptics } from 'web-haptics/react';
 import { RewardProgressBar, REWARDS_THRESHOLDS } from './RewardProgressBar';
 import { speak, stopSpeaking, ensureAudioUnlocked } from '../lib/tts';
 import { initAudioContext, playSound } from '../lib/audio';
+import { getLeafCount, getDueFacts } from '../lib/performanceTracker';
 
 interface MapProps {
   playerName: string;
   unlockedWorlds: string[];
   onSelectWorld: (id: string) => void;
   onOpenTreasury: () => void;
+  onOpenPractice: () => void;
 }
 
-export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWorld, onOpenTreasury }) => {
+export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWorld, onOpenTreasury, onOpenPractice }) => {
   const { trigger } = useWebHaptics();
   const hasSpokenRef = useRef(false);
 
@@ -76,6 +78,44 @@ export const Map: React.FC<MapProps> = ({ playerName, unlockedWorlds, onSelectWo
           }}
         />
       </div>
+
+      {/* Oefenplein button — only show when at least 1 table is completed */}
+      {unlockedWorlds.length >= 2 && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.3 }}
+          className="w-full max-w-lg mb-6 sm:mb-8 relative z-10 px-4 sm:px-0"
+        >
+          <motion.button
+            whileHover={{ scale: 1.02, rotate: 0.5 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              trigger('success');
+              playSound('pop');
+              onOpenPractice();
+            }}
+            className="w-full btn h-auto px-4 py-3 sm:px-6 sm:py-4 group rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border-4 border-green-400 hover:border-green-500 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] transition-all"
+          >
+            <div className="text-left flex items-center gap-3">
+              <div className="bg-green-100 p-2 sm:p-3 rounded-full shadow-inner">
+                <Leaf className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" fill="currentColor" />
+              </div>
+              <div>
+                <h2 className="title-font text-base sm:text-lg font-black text-green-700">
+                  Oefenplein
+                </h2>
+                <p className="text-green-600 font-medium text-xs sm:text-sm">
+                  Oefen de tafels die je al kent!
+                </p>
+              </div>
+            </div>
+            <div className="bg-green-200 px-3 py-1.5 rounded-xl border-2 border-green-300 text-green-700 font-bold text-sm flex items-center gap-1">
+              🍃 {getLeafCount()}
+            </div>
+          </motion.button>
+        </motion.div>
+      )}
 
       <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-lg mb-10 sm:mb-20 relative z-10">
         {Worlds.map((w, index) => {

@@ -3,6 +3,10 @@ export type MathProblem = {
   answer: number;
   /** The two factors, used for visual hints (e.g. [3, 4] for "3 x 4") */
   factors?: [number, number];
+  /** Stable key for performance tracking, e.g. "3×7" */
+  factKey?: string;
+  /** Whether this question is a review from a previously completed table */
+  isReview?: boolean;
 };
 
 export type World = {
@@ -42,6 +46,7 @@ function createTableWorld(table: number, index: number): World {
           question: `${a} × ${table} = ?`,
           answer: a * table,
           factors: [a, table] as [number, number],
+          factKey: `${a}×${table}`,
         };
       });
 

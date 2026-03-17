@@ -5,12 +5,13 @@ import { StartScreen } from './StartScreen';
 import { Treasury } from './Treasury';
 import { IntroScreen } from './IntroScreen';
 import { DoneForToday } from './DoneForToday';
+import { PracticeSquare } from './PracticeSquare';
 import { Worlds } from '../lib/GameData';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { playSound, initAudioContext, toggleBGM, isBGMEnabled, onBGMChange, offBGMChange } from '../lib/audio';
 
-type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done';
+type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done' | 'practice';
 
 /** Max levels a child can complete in one day before seeing "done for today". */
 const MAX_LEVELS_PER_DAY = 2;
@@ -200,6 +201,7 @@ export default function App() {
               unlockedWorlds={unlockedWorlds}
               onSelectWorld={handleSelectWorld}
               onOpenTreasury={() => { initAudioContext(); playSound('pop'); setView('treasury'); }}
+              onOpenPractice={() => { initAudioContext(); playSound('pop'); setView('practice'); }}
             />
           </motion.div>
         )}
@@ -251,6 +253,22 @@ export default function App() {
             <DoneForToday
               playerName={playerName}
               onBackToMap={() => { initAudioContext(); playSound('pop'); setView('map'); }}
+            />
+          </motion.div>
+        )}
+
+        {view === 'practice' && (
+          <motion.div
+            key="practice"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="w-full flex-1 flex flex-col relative min-h-0"
+          >
+            <PracticeSquare
+              unlockedWorlds={unlockedWorlds}
+              onBack={() => { initAudioContext(); playSound('pop'); setView('map'); }}
             />
           </motion.div>
         )}
