@@ -27,14 +27,27 @@ export const MAX_QUESTIONS_PER_SESSION = 10;
 /**
  * Optimal table order for children with learning difficulties.
  * Starts with the easiest/most-pattern-based tables, progresses to harder ones.
+ * Each world has a themed name and emoji for the adventure map.
  */
-const TABLE_ORDER = [1, 10, 2, 5, 4, 3, 6, 7, 8, 9];
+const WORLD_THEMES: { table: number; emoji: string; name: string }[] = [
+  { table: 1,  emoji: '🏝️', name: 'Bamboe Baai' },
+  { table: 10, emoji: '🐊', name: 'Croco Creek' },
+  { table: 2,  emoji: '🌿', name: 'Junglepad' },
+  { table: 5,  emoji: '🍌', name: 'Bananenbrug' },
+  { table: 4,  emoji: '🏛️', name: 'Ruïnevallei' },
+  { table: 3,  emoji: '💎', name: 'Kristallengrot' },
+  { table: 6,  emoji: '🌋', name: 'Lavastroom' },
+  { table: 7,  emoji: '🌬️', name: 'Winderige Piek' },
+  { table: 8,  emoji: '⛰️', name: 'Donderdal' },
+  { table: 9,  emoji: '🏰', name: 'Vulkaan Fortress' },
+];
 
-function createTableWorld(table: number, index: number): World {
+function createTableWorld(theme: typeof WORLD_THEMES[number]): World {
+  const { table, emoji, name } = theme;
   return {
     id: `table-${table}`,
-    title: `Tafel van ${table}`,
-    description: `${table} x 1 t/m ${table} x 10`,
+    title: `${emoji} ${name}`,
+    description: `Tafel van ${table}`,
     table,
     requiredScore: MAX_QUESTIONS_PER_SESSION,
     hasIntro: true,
@@ -61,6 +74,4 @@ function createTableWorld(table: number, index: number): World {
   };
 }
 
-export const Worlds: World[] = TABLE_ORDER.map((table, index) =>
-  createTableWorld(table, index)
-);
+export const Worlds: World[] = WORLD_THEMES.map(createTableWorld);
