@@ -34,11 +34,11 @@ if (typeof window !== 'undefined') {
       preload: true,
     }),
     new Howl({
-      src: [getAudioUrl('MA_Cartoon Voice Good mood-001.wav')],
+      src: [getAudioUrl('MA_Cartoon Voice Good mood-001.mp3')],
       preload: true,
     }),
     new Howl({
-      src: [getAudioUrl('MA_Cartoon Voice Good mood-002.wav')],
+      src: [getAudioUrl('MA_Cartoon Voice Good mood-002.mp3')],
       preload: true,
     }),
   );
@@ -62,7 +62,7 @@ if (typeof window !== 'undefined') {
   });
 
   sounds.pop = new Howl({
-    src: [getAudioUrl('Mouth_Pop_1.wav')],
+    src: [getAudioUrl('Mouth_Pop_1.mp3')],
     volume: 0.5,
     preload: true,
   });
@@ -72,11 +72,13 @@ if (typeof window !== 'undefined') {
     preload: true,
   });
 
+  // BGM is lazy-loaded: preload: false to avoid downloading 1 MB on page load.
+  // The audio is loaded on first user interaction via initAudioContext().
   bgmAudio = new Howl({
-    src: [getAudioUrl('MA_AwesomeMusic_KidsAreChampionsOfFun.wav')],
+    src: [getAudioUrl('MA_AwesomeMusic_KidsAreChampionsOfFun.mp3')],
     loop: true,
     volume: 0.15,
-    preload: true,
+    preload: false,
   });
 }
 
@@ -100,6 +102,17 @@ export function initAudioContext(): void {
 export function playBGM(): void {
   if (!bgmAudio || typeof window === 'undefined') return;
   if (!bgmEnabled) return;
+
+  // Lazy-load: if the BGM hasn't been loaded yet, load it now.
+  // Howler will start playing once the load completes.
+  if (bgmAudio.state() === 'unloaded') {
+    bgmAudio.once('load', () => {
+      bgmAudio!.play();
+      bgmStarted = true;
+    });
+    bgmAudio.load();
+    return;
+  }
 
   if (!bgmAudio.playing()) {
     bgmAudio.play();

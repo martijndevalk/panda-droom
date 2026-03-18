@@ -12,12 +12,7 @@
   "dependencies": {
     "@astrojs/react": "^4.0.0",
     "@astrojs/tailwind": "^6.0.2",
-    "@fontsource/baloo-2": "^5.2.7",
-    "@fontsource/fredoka": "^5.2.10",
     "@fontsource/nunito": "^5.2.7",
-    "@fontsource/quicksand": "^5.2.10",
-    "@fontsource/ubuntu": "^5.2.8",
-    "@fontsource/varela-round": "^5.2.8",
     "astro": "^5.0.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
