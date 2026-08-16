@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from '@tailwindcss/vite';
 import fs from 'node:fs';
 
 function updateSWCacheVersion() {
@@ -25,5 +25,8 @@ function updateSWCacheVersion() {
 export default defineConfig({
   site: 'https://martijndevalk.github.io',
   base: '/panda-droom',
-  integrations: [react(), tailwind(), updateSWCacheVersion()]
+  integrations: [react(), updateSWCacheVersion()],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

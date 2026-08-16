@@ -4,9 +4,45 @@
 @import '@fontsource/nunito/800.css';
 @import '@fontsource/nunito/900.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import './theme.css';
+
+@plugin "daisyui";
+
+/* ── DaisyUI 5 custom theme: pandadroom ── */
+[data-theme='pandadroom'] {
+  --color-primary: #388E3C;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #F57C00;
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #7B1FA2;
+  --color-accent-content: #FFFFFF;
+  --color-neutral: #5D4E6D;
+  --color-neutral-content: #F5F0FF;
+  --color-base-100: #FFF8F0;
+  --color-base-200: #FFEFD5;
+  --color-base-300: #FFE4C4;
+  --color-base-content: #2D3436;
+  --color-info: #0288D1;
+  --color-info-content: #FFFFFF;
+  --color-success: #388E3C;
+  --color-success-content: #FFFFFF;
+  --color-warning: #FFD54F;
+  --color-warning-content: #3E2723;
+  --color-error: #EF5350;
+  --color-error-content: #FFFFFF;
+
+  --radius-box: 1.5rem;
+  --radius-btn: 1.25rem;
+  --radius-badge: 1.5rem;
+  --radius-tab: 0.75rem;
+
+  --btn-focus-scale: 0.97;
+  --animation-btn: 0.3s;
+  --animation-input: 0.3s;
+}
+
+@source '../**/*.{js,ts,jsx,tsx}';
 
 @layer base {
   body {
