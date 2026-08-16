@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Lock, Star } from 'lucide-react';
 import { useWebHaptics } from 'web-haptics/react';
 import { initAudioContext, playSound } from '../../lib/audio';
+import { speak, ensureAudioUnlocked } from '../../lib/tts';
 import { PandaAvatar } from '../PandaAvatar';
 
 export interface JourneyNodeProps {
@@ -36,13 +37,15 @@ export const JourneyNode: React.FC<JourneyNodeProps> = ({
   const isTables = theme === 'tables';
 
   const handleClick = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
     if (isUnlocked) {
       trigger('success');
-      initAudioContext();
       playSound('pop');
       onSelect(id);
     } else {
       trigger('error');
+      speak(`Oeps! ${title} zit nog op slot. Speel eerst het vorige level uit om deze vrij te spelen!`);
     }
   };
 

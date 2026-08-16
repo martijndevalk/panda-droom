@@ -15,6 +15,7 @@ import { CLOCK_WORLDS } from '../lib/clockData';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { playSound, initAudioContext, toggleBGM, isBGMEnabled, onBGMChange, offBGMChange } from '../lib/audio';
+import { resetPerformanceData } from '../lib/performanceTracker';
 
 type View =
   | 'start'
@@ -256,6 +257,14 @@ export default function App() {
       }
     }
 
+    const completedToday = recordLevelCompletion();
+
+    if (completedToday >= MAX_LEVELS_PER_DAY) {
+      setView('done');
+      setCurrentClockWorldId(null);
+      return;
+    }
+
     if (action === 'next' && nextWorldId) {
       setCurrentClockWorldId(nextWorldId);
       if (!hasSeenClockIntro(nextWorldId)) {
@@ -487,6 +496,7 @@ export default function App() {
                 setPlayerName('');
                 setUnlockedWorlds([Worlds[0].id]);
                 setUnlockedClockWorlds([CLOCK_WORLDS[0].id]);
+                resetPerformanceData();
                 localStorage.removeItem('panda-droom-player-name');
                 localStorage.removeItem('panda-droom-unlocked');
                 localStorage.removeItem('panda-droom-clock-unlocked');

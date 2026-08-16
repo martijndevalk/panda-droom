@@ -142,7 +142,18 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
         transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1 }}
         className="w-full max-w-lg mb-4 sm:mb-6 relative z-10"
       >
-        <div className="bg-white rounded-[2rem] p-4 sm:p-5 text-center border-4 border-dark shadow-[6px_6px_0px_theme(colors.dark)] flex items-center justify-between gap-4">
+        <div
+          onClick={() => {
+            initAudioContext();
+            ensureAudioUnlocked();
+            trigger('nudge');
+            speak(`Je hebt al ${leafCount} groene blaadjes verzameld voor Panda! Hoe meer sommen je oefent, hoe meer blaadjes je verdient!`);
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Luister naar jouw blaadjes score"
+          className="bg-white rounded-[2rem] p-4 sm:p-5 text-center border-4 border-dark shadow-[6px_6px_0px_theme(colors.dark)] flex items-center justify-between gap-4 cursor-pointer hover:border-green-600 transition-colors"
+        >
           <div className="flex items-center gap-3">
             <div className="bg-green-100 p-2 sm:p-3 rounded-full shadow-inner">
               <Leaf className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
@@ -165,7 +176,16 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.15 }}
-        className="mb-4 sm:mb-6 relative z-10"
+        onClick={() => {
+          initAudioContext();
+          ensureAudioUnlocked();
+          trigger('nudge');
+          speak('Panda vindt het supergezellig om samen met jou te rekenen! Kies maar een leuke tafel uit!');
+        }}
+        className="mb-4 sm:mb-6 relative z-10 cursor-pointer"
+        role="button"
+        tabIndex={0}
+        aria-label="Praten met Panda"
       >
         <motion.div
           animate={{ y: [0, -6, 0] }}

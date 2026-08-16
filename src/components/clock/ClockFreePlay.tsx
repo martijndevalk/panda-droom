@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Volume2, Sun, Moon, Plus, Minus, Sparkles } from 'lucide-react';
 import { playSound, initAudioContext } from '../../lib/audio';
-import { speak, ensureAudioUnlocked } from '../../lib/tts';
+import { speak, stopSpeaking, ensureAudioUnlocked } from '../../lib/tts';
 import { PandaAvatar } from '../PandaAvatar';
 import { ClockFace } from './ClockFace';
 import { getDutchTimeText, getDutchTimeSpoken, formatDigitalTime } from '../../lib/clockData';
@@ -15,6 +15,7 @@ export const ClockFreePlay: React.FC<ClockFreePlayProps> = ({ onBack }) => {
   const [hour, setHour] = useState(3);
   const [minute, setMinute] = useState(30);
   const [is24Hour, setIs24Hour] = useState(false);
+  const hasSpokenRef = useRef(false);
 
   const display24H = is24Hour ? (hour % 12) + 12 : hour;
   const isNight = display24H >= 20 || display24H < 6;
@@ -39,6 +40,35 @@ export const ClockFreePlay: React.FC<ClockFreePlayProps> = ({ onBack }) => {
       funComment = ' Ssst... Panda ligt al lekker te snurken!';
     }
     speak(`Het is nu ${spokenTime} ${period}!${funComment}`);
+  };
+
+  useEffect(() => {
+    if (!hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const timer = setTimeout(() => {
+        initAudioContext();
+        ensureAudioUnlocked();
+        speak('Welkom op het Klokkenplein! Draai maar lekker aan de wijzers en ontdek hoe laat het is!');
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
+
+  const handleToggleDayNight = () => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    playSound('pop');
+    const newIs24H = !is24Hour;
+    setIs24Hour(newIs24H);
+    if (newIs24H) {
+      speak('Nu is het avond en nacht! Kijk naar de sterretjes!');
+    } else {
+      speak('Goedemorgen! De zon schijnt op het Klokkenplein!');
+    }
   };
 
   const adjustMinute = (delta: number) => {
@@ -100,11 +130,7 @@ export const ClockFreePlay: React.FC<ClockFreePlayProps> = ({ onBack }) => {
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
-          onClick={() => {
-            initAudioContext();
-            playSound('pop');
-            setIs24Hour(!is24Hour);
-          }}
+          onClick={handleToggleDayNight}
           className={`w-12 h-12 rounded-full border-4 border-dark shadow-[3px_3px_0px_theme(colors.dark)] flex items-center justify-center cursor-pointer transition-transform ${
             isNight ? 'bg-indigo-600 text-yellow-300' : 'bg-amber-300 text-amber-900'
           }`}

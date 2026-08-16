@@ -218,6 +218,26 @@ function generateWrongOptions(correctH: number, correctM: number, allowedMinutes
 /**
  * Generate problem list for a world
  */
+const READ_QUESTION_TEMPLATES = [
+  { text: 'Hoe laat is het op de klok?', spoken: 'Hoe laat is het op de klok?' },
+  { text: 'Kijk naar de klok: hoe laat is het?', spoken: 'Kijk goed naar de klok! Hoe laat is het?' },
+  { text: 'Welke tijd wijzen de wijzers aan?', spoken: 'Welke tijd wijzen de wijzers aan?' },
+  { text: 'Hoe laat tikt de klok nu?', spoken: 'Hoe laat tikt de klok nu?' },
+  { text: 'Weet jij hoe laat het hier is?', spoken: 'Weet jij hoe laat het hier is?' },
+  { text: 'Wat zegt de klok?', spoken: 'Wat zegt de klok?' },
+];
+
+function getSetQuestionTemplate(timeText: string, timeSpoken: string) {
+  const templates = [
+    { text: `Zet de klok op ${timeText}!`, spoken: `Zet de klok op ${timeSpoken}!` },
+    { text: `Draai de wijzers naar ${timeText}!`, spoken: `Draai de wijzers naar ${timeSpoken}!` },
+    { text: `Kun jij de klok op ${timeText} zetten?`, spoken: `Kun jij de klok op ${timeSpoken} zetten?` },
+    { text: `Help Panda! Maak de tijd: ${timeText}.`, spoken: `Help Panda! Maak de tijd: ${timeSpoken}!` },
+    { text: `Zet de grote en kleine wijzer op ${timeText}!`, spoken: `Zet de grote en kleine wijzer op ${timeSpoken}!` },
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
 function createProblemsForMinutes(
   allowedMinutes: number[],
   includeSetMode: boolean = true,
@@ -237,13 +257,14 @@ function createProblemsForMinutes(
     const type: ClockProblemType = includeSetMode && i % 2 === 1 ? 'set' : 'read';
 
     if (type === 'set') {
+      const setPrompt = getSetQuestionTemplate(correctDutch, spoken);
       problems.push({
         id: `prob-${i}-${randH}-${randM}-set`,
         type: 'set',
         hours: (randH + 3) % 12 + 1, // Start hands in different position
         minutes: 0,
-        questionText: `Zet de klok op ${correctDutch}!`,
-        spokenText: `Zet de klok op ${spoken}!`,
+        questionText: setPrompt.text,
+        spokenText: setPrompt.spoken,
         correctAnswer: correctDutch,
         hintText: worldHintTemplate(randH, randM),
         targetHours: randH,
@@ -251,13 +272,14 @@ function createProblemsForMinutes(
       });
     } else {
       const options = generateWrongOptions(randH, randM, allowedMinutes);
+      const readPrompt = READ_QUESTION_TEMPLATES[i % READ_QUESTION_TEMPLATES.length];
       problems.push({
         id: `prob-${i}-${randH}-${randM}-read`,
         type: 'read',
         hours: randH,
         minutes: randM,
-        questionText: `Hoe laat is het op de klok?`,
-        spokenText: `Hoe laat is het op de klok?`,
+        questionText: readPrompt.text,
+        spokenText: readPrompt.spoken,
         correctAnswer: correctDutch,
         options,
         hintText: worldHintTemplate(randH, randM),
@@ -454,12 +476,20 @@ export const CLOCK_WORLDS: ClockWorld[] = [
             [optionsList[i], optionsList[j]] = [optionsList[j], optionsList[i]];
           }
 
+          const digitalTemplates = [
+            { text: `Welke digitale tijd hoort bij ${dutchTimeLabel}?`, spoken: `Welke digitale tijd hoort bij ${spokenDutchTime}?` },
+            { text: `Zoek de cijferklok voor ${dutchTimeLabel}!`, spoken: `Zoek de cijferklok voor ${spokenDutchTime}!` },
+            { text: `Hoe ziet ${dutchTimeLabel} eruit in cijfers?`, spoken: `Hoe ziet ${spokenDutchTime} eruit in digitale cijfers?` },
+            { text: `Welke getallenklok wijst ${dutchTimeLabel} aan?`, spoken: `Welke getallenklok wijst ${spokenDutchTime} aan?` },
+          ];
+          const digiPrompt = digitalTemplates[idx % digitalTemplates.length];
+
           return {
             ...p,
             type: 'digital' as ClockProblemType,
             display24Hour: displayH,
-            questionText: `Welke digitale tijd hoort bij ${dutchTimeLabel}?`,
-            spokenText: `Welke digitale tijd hoort bij ${spokenDutchTime}?`,
+            questionText: digiPrompt.text,
+            spokenText: digiPrompt.spoken,
             correctAnswer: digitalStr,
             options: optionsList,
           };

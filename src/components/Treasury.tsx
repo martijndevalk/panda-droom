@@ -91,10 +91,28 @@ export const Treasury: React.FC<TreasuryProps> = ({
     initAudioContext();
     ensureAudioUnlocked();
     if (tab === 'tables') {
-      speak(`Mijn Schatkist! Wauw, je hebt al ${earnedMathCount} van de ${mathStickers.length} rekenstickers verdiend! Kijk ze eens blinken!`);
+      speak(`Getallenreis! Wauw, je hebt al ${earnedMathCount} van de ${mathStickers.length} rekenstickers verdiend! Tik op een sticker om hem te bekijken!`);
     } else {
-      speak(`Mijn Schatkist! Wauw, je hebt al ${earnedClockCount} van de ${CLOCK_BADGES.length} klokdiploma's verdiend! Wat een kampioen!`);
+      speak(`Tijdreis! Wauw, je hebt al ${earnedClockCount} van de ${CLOCK_BADGES.length} klokdiploma's verdiend! Tik op een diploma om hem te horen!`);
     }
+  };
+
+  const speakSticker = (title: string, tableLabel: string, isUnlocked: boolean) => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    trigger('nudge');
+    if (isUnlocked) {
+      speak(`Super! De rekensticker voor ${tableLabel}: ${title}! Goed verdiend!`);
+    } else {
+      speak(`Deze sticker voor ${tableLabel} zit nog in de schatkist! Oefen deze tafel op de kaart om hem vrij te spelen!`);
+    }
+  };
+
+  const speakStats = (leaves: number, sessions: number, streak: number) => {
+    initAudioContext();
+    ensureAudioUnlocked();
+    trigger('nudge');
+    speak(`Jouw oefenresultaten! Je hebt al ${leaves} groene blaadjes verzameld, ${sessions} keer geoefend, en jouw record is ${streak} sommen goed op een rij! Geweldig bezig!`);
   };
 
   const speakBadge = (title: string, subtitle: string, description: string, isUnlocked: boolean) => {
@@ -219,7 +237,11 @@ export const Treasury: React.FC<TreasuryProps> = ({
                       animate={{ scale: 1, y: 0 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 14, delay: i * 0.04 }}
                       whileHover={isUnlocked ? { scale: 1.05, rotate: i % 2 === 0 ? 3 : -3 } : {}}
-                      className={`p-3 sm:p-4 rounded-[1.25rem] sm:rounded-[1.5rem] shadow-[4px_4px_0px_theme(colors.dark)] border-4 flex flex-col items-center gap-2 text-center ${
+                      onClick={() => speakSticker(s.title, s.tableLabel, isUnlocked)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${s.title}, ${s.tableLabel}`}
+                      className={`p-3 sm:p-4 rounded-[1.25rem] sm:rounded-[1.5rem] shadow-[4px_4px_0px_theme(colors.dark)] border-4 flex flex-col items-center gap-2 text-center cursor-pointer select-none transition-transform active:scale-95 ${
                         isUnlocked ? 'bg-white border-dark' : 'bg-gray-200 border-gray-400 opacity-70'
                       }`}
                     >
@@ -246,7 +268,13 @@ export const Treasury: React.FC<TreasuryProps> = ({
                 const practiceStats = getStats();
                 if (practiceStats.leaves === 0 && practiceStats.totalReviewSessions === 0) return null;
                 return (
-                  <div className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark w-full mb-6 sm:mb-8">
+                  <div
+                    onClick={() => speakStats(practiceStats.leaves, practiceStats.totalReviewSessions, practiceStats.longestStreak)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Luister naar jouw oefenstatistieken"
+                    className="bg-white p-4 sm:p-5 md:p-8 rounded-[1.25rem] sm:rounded-[1.5rem] md:rounded-[2rem] shadow-[6px_6px_0px_theme(colors.dark)] border-4 border-dark w-full mb-6 sm:mb-8 cursor-pointer hover:border-green-600 transition-colors"
+                  >
                     <h2 className="title-font text-2xl font-black text-green-800 flex items-center gap-2 mb-4">
                       <Leaf className="w-6 h-6" /> Hoe goed oefen jij?
                     </h2>

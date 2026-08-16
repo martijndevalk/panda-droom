@@ -27,6 +27,9 @@ const CLOCK_ENCOURAGEMENTS = [
   { text: 'Geen paniek, tijdreiziger! 🚀', spoken: 'Geen paniek! Van proberen word je een echte klokkenkampioen!' },
   { text: 'Kleine en grote wijzer helpen je! 🕰️', spoken: 'Kijk goed waar de grote en de kleine wijzer naar wijzen!' },
   { text: 'Even tik-takken en nog een keer! 🐼', spoken: 'Bijna raak! Panda telt tik-tak, probeer het nog een keertje!' },
+  { text: 'Neem lekker je tijd! ⏳', spoken: 'Neem rustig je tijd, Panda wacht gezellig op jou!' },
+  { text: 'Rood is uur, blauw is minuut! 🎨', spoken: 'Handige tip: de rode wijzer wijst het uur, de blauwe wijzer de minuten!' },
+  { text: 'Panda klapt in zijn pootjes! 🐾', spoken: 'Supergoed dat je het probeert! Jij komt er wel!' },
 ];
 
 export const ClockLevel: React.FC<ClockLevelProps> = ({

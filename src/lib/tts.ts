@@ -183,31 +183,135 @@ export async function speak(text: string): Promise<void> {
   }
 }
 
-/** Fallback to the browser's native text-to-speech. */
-function speakNative(text: string) {
-  if (!('speechSynthesis' in window)) return;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'nl-NL';
+/**
+ * Pre-processes text for natural Dutch speech intonation and pronunciation.
+ *
+ * 1. Strips emojis that TTS engines might skip or read out weirdly.
+ * 2. Replaces math & fraction symbols like "3/10" with "3 van de 10" and "×" with "keer".
+ * 3. Expands common abbreviations.
+ * 4. Ensures natural punctuation for proper pitch rising/falling and breathing pauses.
+ */
+function preprocessForDutchSpeech(text: string): string {
+  let cleaned = text
+    // Remove emoji icons that can cause stutter or odd spell-outs
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '')
+    // Math fractions / counters like "3/10" -> "3 van de 10"
+    .replace(/(\d+)\s*\/\s*(\d+)/g, '$1 van de $2')
+    // Multiplication signs
+    .replace(/(\d+)\s*[×x*]\s*(\d+)/g, '$1 keer $2')
+    // Equals signs
+    .replace(/\s*=\s*\?/g, ' is hoeveel?')
+    .replace(/\s*=\s*/g, ' is ')
+    // Plus and Minus
+    .replace(/\s*\+\s*/g, ' plus ')
+    .replace(/\s*-\s*/g, ' min ')
+    // Abbreviations
+    .replace(/\bbijv\.\b/gi, 'bijvoorbeeld')
+    .replace(/\bmin\.\b/gi, 'minuten')
+    .replace(/\bu\.\b/gi, 'uur')
+    // Ensure clean multiple spaces
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // Try to find a female Dutch voice
-  const voices = window.speechSynthesis.getVoices();
-  const nlVoices = voices.filter(v => v.lang.startsWith('nl-'));
-  const femaleVoice = nlVoices.find(v =>
-    v.name.toLowerCase().includes('female') ||
-    v.name.toLowerCase().includes('vrouw') ||
-    v.name.includes('Google') || // Google's default NL voice is usually female
-    v.name.includes('Claire') || // Apple's female NL voice
-    v.name.includes('Fiona')     // Another Apple female voice
-  );
-
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
-  } else if (nlVoices.length > 0) {
-    utterance.voice = nlVoices[0];
+  // Ensure sentence ends with expressive punctuation for lively intonation
+  if (cleaned && !/[.!?]$/.test(cleaned)) {
+    cleaned += '!';
   }
 
-  utterance.pitch = 1.0; // Normal pitch
-  utterance.rate = 0.9; // Normal/slightly slower pace, better for kids
+  return cleaned;
+}
+
+/** Cached voices for Web Speech API fallback */
+let cachedNlVoice: SpeechSynthesisVoice | null = null;
+/** Retain reference to active utterance to prevent Chrome garbage-collection cutting off speech mid-sentence */
+let activeUtterance: SpeechSynthesisUtterance | null = null;
+
+function findDutchVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const nlVoices = voices.filter(v =>
+    v.lang.startsWith('nl-') ||
+    v.lang.startsWith('nl_') ||
+    v.lang.toLowerCase() === 'nl' ||
+    v.lang.includes('NL') ||
+    v.lang.includes('BE')
+  );
+  if (nlVoices.length === 0) return null;
+
+  // High-quality voice priority list (Neural, Natural, Premium, Modern OS voices)
+  const priorityKeywords = [
+    'natural',
+    'online (natural)',
+    'neural',
+    'premium',
+    'enhanced',
+    'fenna',
+    'maarten',
+    'claire',
+    'fiona',
+    'xander',
+    'google nederlands',
+    'google',
+    'colette',
+    'ruben',
+    'female',
+    'vrouw',
+  ];
+
+  for (const keyword of priorityKeywords) {
+    const match = nlVoices.find(v => v.name.toLowerCase().includes(keyword));
+    if (match) return match;
+  }
+
+  return nlVoices[0];
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  cachedNlVoice = findDutchVoice();
+  window.speechSynthesis.addEventListener('voiceschanged', () => {
+    cachedNlVoice = findDutchVoice();
+  });
+}
+
+/** Fallback to the browser's native text-to-speech with optimized intonation for kids. */
+function speakNative(rawText: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+  const processedText = preprocessForDutchSpeech(rawText);
+  if (!processedText) return;
+
+  // Cancel any ongoing speech to avoid overlap
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(processedText);
+  utterance.lang = 'nl-NL';
+
+  const voice = cachedNlVoice || findDutchVoice();
+  if (voice) {
+    utterance.voice = voice;
+  }
+
+  // Intonation tweaks:
+  // - Pitch 1.08: slightly higher, friendlier and more youthful tone for children
+  // - Rate 0.92: calm, articulate pacing without sounding sluggish
+  utterance.pitch = 1.08;
+  utterance.rate = 0.92;
+  utterance.volume = 1.0;
+
+  activeUtterance = utterance;
+
+  utterance.onend = () => {
+    if (activeUtterance === utterance) {
+      activeUtterance = null;
+    }
+  };
+
+  utterance.onerror = () => {
+    if (activeUtterance === utterance) {
+      activeUtterance = null;
+    }
+  };
+
   window.speechSynthesis.speak(utterance);
 }
 
@@ -216,6 +320,7 @@ export function stopSpeaking(): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
+  activeUtterance = null;
   if (sharedAudio) {
     sharedAudio.pause();
     sharedAudio.currentTime = 0;

@@ -116,7 +116,14 @@ export const Map: React.FC<MapProps> = ({
     } else {
       rewardText = 'Gefeliciteerd! Je hebt alle beloningen verdiend!';
     }
-    speak(`Hoi ${playerName}! Welkom op de schatkaart! ${rewardText}`);
+
+    const greetings = [
+      `Hoi ${playerName}! Welkom op de schatkaart! ${rewardText}`,
+      `Ha ${playerName}! Klaar voor een nieuw rekenavontuur? ${rewardText}`,
+      `Fijn dat je er bent, ${playerName}! Kies maar een wereld op het pad! ${rewardText}`,
+    ];
+    const pickedGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    speak(pickedGreeting);
   };
 
   useEffect(() => {

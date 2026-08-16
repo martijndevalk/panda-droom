@@ -33,6 +33,9 @@ const ENCOURAGEMENTS = [
   { text: 'Geen paniek, rekenkampioen! 🚀', spoken: 'Geen paniek! Van foutjes maken word je juist superslim!' },
   { text: 'Die som probeert je te foppen! 🎪', spoken: 'Hé, die som probeerde je stiekem te foppen! Nog een keertje proberen!' },
   { text: 'Zelfs de bamboe moest even denken! 🎋', spoken: 'Bijna raak! Even diep ademhalen en probeer maar weer!' },
+  { text: 'Kijk eens naar de sprongetjes! 🦘', spoken: 'Geen zorgen! Denk aan de sprongetjes van deze tafel!' },
+  { text: 'Oefening baart kunst! ✨', spoken: 'Supergoed dat je het probeert! Doe het nog eens rustig aan!' },
+  { text: 'Panda moedigt je aan! 🐾', spoken: 'Panda klapt in zijn pootjes! Je bent er bijna!' },
 ];
 
 export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, onComplete, isReview = false, reviewSequence }) => {
@@ -82,17 +85,32 @@ export const Level: React.FC<LevelProps> = ({ worldId, unlockedWorlds, onBack, o
       const num = q.replace(/Typ het getal:\s*/i, '').trim();
       spokenText = `Typ het getal ${num}`;
     } else {
-      spokenText = q
+      const rawExpr = q
         .replace(/\s*=\s*\?\s*$/, '')
         .replace(/\s*×\s*/g, ' keer ')
         .replace(/\s*x\s*/g, ' keer ')
         .replace(/\s*\+\s*/g, ' plus ')
         .replace(/\s*-\s*/g, ' min ');
-      spokenText = `Hoeveel is ${spokenText}?`;
+
+      const questionStyles = [
+        `Hoeveel is ${rawExpr}?`,
+        `Wat is ${rawExpr}?`,
+        `Reken maar uit: hoeveel is ${rawExpr}?`,
+        `Weet jij hoeveel ${rawExpr} is?`,
+        `Los maar op: ${rawExpr}!`,
+      ];
+
+      // If factors are known, sometimes use C-P-A "groepjes van" phrasing
+      if (problem.factors && (currentIndex % 3 === 2)) {
+        const [groups, items] = problem.factors;
+        spokenText = `${groups} groepjes van ${items} is samen...?`;
+      } else {
+        spokenText = questionStyles[currentIndex % questionStyles.length];
+      }
     }
 
     speak(spokenText);
-  }, [hasTts]);
+  }, [hasTts, currentIndex]);
 
   useEffect(() => {
     if (currentProblem && !hasSpokenRef.current.has(currentIndex)) {

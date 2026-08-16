@@ -5,6 +5,8 @@ import { useWebHaptics } from 'web-haptics/react';
 import { initAudioContext, playSound } from '../lib/audio';
 import { RewardItem } from '../lib/rewardsStorage';
 
+import { ParentGateModal } from './ParentGateModal';
+
 interface ParentRewardsSectionProps {
   title: string;
   description: string;
@@ -33,6 +35,21 @@ export const ParentRewardsSection: React.FC<ParentRewardsSectionProps> = ({
   const [tempRewards, setTempRewards] = useState<RewardItem[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Modal states for child gate & confirmations
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    mode: 'gate' | 'confirm';
+    title: string;
+    message: string;
+    confirmButtonText?: string;
+    action?: 'edit' | 'reset-progress' | 'reset-defaults';
+  }>({
+    isOpen: false,
+    mode: 'gate',
+    title: '',
+    message: '',
+  });
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -40,7 +57,6 @@ export const ParentRewardsSection: React.FC<ParentRewardsSectionProps> = ({
 
   const handleStartEdit = () => {
     initAudioContext();
-    playSound('pop');
     trigger('nudge');
     setTempRewards(JSON.parse(JSON.stringify(rewards)));
     setIsEditing(true);
@@ -57,28 +73,42 @@ export const ParentRewardsSection: React.FC<ParentRewardsSectionProps> = ({
 
   const handleCancel = () => {
     initAudioContext();
-    playSound('pop');
     trigger('nudge');
     setIsEditing(false);
   };
 
-  const handleResetDefaults = () => {
+  const handleResetDefaultsClick = () => {
     initAudioContext();
-    playSound('pop');
     trigger('nudge');
-    if (window.confirm(`Weet je zeker dat je de beloningen voor ${title} wilt herstellen naar de standaardteksten?`)) {
-      onResetToDefaults();
-      setIsEditing(false);
-      showToast('Standaardbeloningen hersteld! 🔄');
-    }
+    setModalState({
+      isOpen: true,
+      mode: 'confirm',
+      title: 'Standaardbeloningen herstellen?',
+      message: `Weet je zeker dat je de beloningen voor ${title} wilt herstellen naar de originele teksten?`,
+      confirmButtonText: 'Herstel Standaarden',
+      action: 'reset-defaults',
+    });
   };
 
   const handleResetProgressClick = () => {
-    const pwd = window.prompt(`Voer het ouder wachtwoord in om de voortgang van ${playerName} te resetten:`);
-    if (pwd === 'panda') {
+    initAudioContext();
+    trigger('nudge');
+    setModalState({
+      isOpen: true,
+      mode: 'gate',
+      title: 'Voortgang Resetten',
+      message: `Los de som op om te bevestigen dat je de voortgang van ${playerName || 'het kind'} wilt wissen:`,
+      action: 'reset-progress',
+    });
+  };
+
+  const handleModalSuccess = () => {
+    if (modalState.action === 'reset-defaults') {
+      onResetToDefaults();
+      setIsEditing(false);
+      showToast('Standaardbeloningen hersteld! 🔄');
+    } else if (modalState.action === 'reset-progress') {
       onResetProgress();
-    } else if (pwd !== null) {
-      alert('Verkeerd wachtwoord!');
     }
   };
 
@@ -215,7 +245,7 @@ export const ParentRewardsSection: React.FC<ParentRewardsSectionProps> = ({
               whileHover={{ scale: 1.04, y: -1 }}
               whileTap={{ scale: 0.96 }}
               type="button"
-              onClick={handleResetDefaults}
+              onClick={handleResetDefaultsClick}
               className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-black py-2 px-4 rounded-full border-3 border-dark shadow-[2px_2px_0px_theme(colors.dark)] text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap self-start sm:self-auto"
             >
               <RotateCcw size={15} />
@@ -224,6 +254,17 @@ export const ParentRewardsSection: React.FC<ParentRewardsSectionProps> = ({
           </div>
         </div>
       )}
+
+      {/* Kinderslot & Bevestigingsmodal */}
+      <ParentGateModal
+        isOpen={modalState.isOpen}
+        mode={modalState.mode}
+        title={modalState.title}
+        message={modalState.message}
+        confirmButtonText={modalState.confirmButtonText}
+        onSuccess={handleModalSuccess}
+        onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

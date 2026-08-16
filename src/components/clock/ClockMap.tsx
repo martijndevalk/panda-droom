@@ -95,7 +95,14 @@ export const ClockMap: React.FC<ClockMapProps> = ({
     } else {
       rewardText = 'Gefeliciteerd! Je hebt alle klokkendiploma\'s en beloningen verdiend!';
     }
-    speak(`Hoi ${playerName}! Welkom bij Panda's Tijdreis! ${rewardText}`);
+
+    const greetings = [
+      `Hoi ${playerName}! Welkom bij Panda's Tijdreis! ${rewardText}`,
+      `Ha tijdreiziger ${playerName}! Klaar voor een nieuw klokkenavontuur? ${rewardText}`,
+      `Welkom bij de Tijdreis, ${playerName}! Kies maar een wereld om te klokkijken! ${rewardText}`,
+    ];
+    const pickedGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    speak(pickedGreeting);
   };
 
   useEffect(() => {

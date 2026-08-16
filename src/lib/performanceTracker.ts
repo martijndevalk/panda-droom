@@ -188,6 +188,13 @@ export function getStats(): { leaves: number; totalReviewSessions: number; longe
   };
 }
 
+/** Reset all performance, leaves and review data. */
+export function resetPerformanceData(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
