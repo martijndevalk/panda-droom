@@ -16,7 +16,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   const handleSpeak = () => {
     initAudioContext();
     ensureAudioUnlocked();
-    speak("Welkom bij Panda's Getallenreis! Hoe heet jij?");
+    speak("Hoi! Welkom bij Panda's Getallenreis! Hoe heet jij? Typ je naam en we gaan samen op avontuur!");
   };
 
   useEffect(() => {
@@ -61,33 +61,33 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         transition={{ type: 'spring', stiffness: 300, damping: 14, mass: 0.8 }}
         className="text-center mb-6 sm:mb-10 z-10 bg-white p-6 sm:p-8 rounded-[2rem] shadow-[8px_8px_0px_theme(colors.dark)] max-w-sm w-full border-4 border-dark relative flex flex-col items-center"
       >
-        <h1 className="title-font text-2xl sm:text-3xl font-black text-dark drop-shadow-sm mb-4">
+        <h1 className="title-font text-2xl sm:text-3xl font-black text-dark drop-shadow-sm mb-2">
           Welkom bij Panda's Getallenreis!
         </h1>
-        <p className="text-base sm:text-lg text-gray-600 mb-6 font-medium">
-          Hoe heet jij?
+        <p className="text-base sm:text-lg text-gray-600 mb-6 font-bold">
+          Hoe heet jij, slimme rekenaar? 🐼
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Je naam..."
-            className="w-full text-xl sm:text-2xl p-3 sm:p-4 rounded-2xl border-4 border-dark focus:border-toy-green focus:outline-none focus:ring-0 text-center font-bold text-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-colors"
+            className="w-full text-xl sm:text-2xl py-3 px-6 rounded-full border-4 border-dark focus:border-toy-green focus:outline-none focus:ring-0 text-center font-bold text-dark shadow-[4px_4px_0px_theme(colors.dark)] transition-colors"
             autoFocus
           />
           <motion.button
-            whileHover={{ scale: 1.06, rotate: 2 }}
-            whileTap={{ scale: 0.92, rotate: -1 }}
+            whileHover={{ scale: 1.05, rotate: 1 }}
+            whileTap={{ scale: 0.94, rotate: -1 }}
             type="submit"
             disabled={!name.trim()}
-            className={`btn btn-lg w-full rounded-2xl text-lg sm:text-xl border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] ${
+            className={`w-full py-3.5 rounded-full text-lg sm:text-xl font-black border-4 border-dark shadow-[4px_4px_0px_theme(colors.dark)] flex items-center justify-center gap-2 cursor-pointer transition-all ${
               name.trim() ? 'bg-[#388E3C] hover:bg-[#2e7d32] text-white' : 'bg-gray-300 text-gray-400 opacity-50 cursor-not-allowed'
             }`}
           >
-            <Play size={24} className="text-white" />
-            Starten
+            <Play size={22} className="text-white" fill="white" />
+            <span>Starten</span>
           </motion.button>
         </form>
       </motion.div>

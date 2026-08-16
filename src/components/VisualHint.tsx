@@ -23,7 +23,7 @@ export function VisualHint({ factors, visible, onClose }: VisualHintProps) {
   const handleSpeak = () => {
     initAudioContext();
     ensureAudioUnlocked();
-    speak(`Hint! ${groups} groepjes van ${dotsPerGroup}. Tel alle bolletjes!`);
+    speak(`Panda's rekentip! Kijk eens: hier zijn ${groups} groepjes van ${dotsPerGroup}. Tel alle groene bolletjes maar bij elkaar op!`);
   };
 
   useEffect(() => {

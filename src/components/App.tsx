@@ -6,12 +6,28 @@ import { Treasury } from './Treasury';
 import { IntroScreen } from './IntroScreen';
 import { DoneForToday } from './DoneForToday';
 import { PracticeSquare } from './PracticeSquare';
+import { ClockMap } from './clock/ClockMap';
+import { ClockLevel } from './clock/ClockLevel';
+import { ClockIntroScreen } from './clock/ClockIntroScreen';
+import { ClockFreePlay } from './clock/ClockFreePlay';
 import { Worlds } from '../lib/GameData';
+import { CLOCK_WORLDS } from '../lib/clockData';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { playSound, initAudioContext, toggleBGM, isBGMEnabled, onBGMChange, offBGMChange } from '../lib/audio';
 
-type View = 'start' | 'map' | 'intro' | 'level' | 'treasury' | 'done' | 'practice';
+type View =
+  | 'start'
+  | 'map'
+  | 'intro'
+  | 'level'
+  | 'treasury'
+  | 'done'
+  | 'practice'
+  | 'clock-map'
+  | 'clock-intro'
+  | 'clock-level'
+  | 'clock-freeplay';
 
 /** Max levels a child can complete in one day before seeing "done for today". */
 const MAX_LEVELS_PER_DAY = 2;
@@ -58,6 +74,25 @@ function markIntroSeen(worldId: string): void {
   } catch {}
 }
 
+/** Check if a clock world intro has been seen. */
+function hasSeenClockIntro(worldId: string): boolean {
+  try {
+    const seen = JSON.parse(localStorage.getItem('panda-droom-clock-intros') || '[]');
+    return seen.includes(worldId);
+  } catch { return false; }
+}
+
+/** Mark a clock world intro as seen. */
+function markClockIntroSeen(worldId: string): void {
+  try {
+    const seen = JSON.parse(localStorage.getItem('panda-droom-clock-intros') || '[]');
+    if (!seen.includes(worldId)) {
+      seen.push(worldId);
+      localStorage.setItem('panda-droom-clock-intros', JSON.stringify(seen));
+    }
+  } catch {}
+}
+
 export default function App() {
   const [view, setView] = useState<View>(() => {
     if (typeof window !== 'undefined') {
@@ -72,10 +107,17 @@ export default function App() {
     }
     return '';
   });
-  const [currentWorldId, setCurrentWorldId] = useState<string | null>(null);
 
-  // Starting with first table unlocked
+  // Table Worlds state
+  const [currentWorldId, setCurrentWorldId] = useState<string | null>(null);
   const [unlockedWorlds, setUnlockedWorlds] = useState<string[]>([Worlds[0].id]);
+
+  // Clock Worlds state
+  const [currentClockWorldId, setCurrentClockWorldId] = useState<string | null>(null);
+  const [unlockedClockWorlds, setUnlockedClockWorlds] = useState<string[]>([CLOCK_WORLDS[0].id]);
+
+  // Last active journey mode for Treasury navigation
+  const [lastJourney, setLastJourney] = useState<'tables' | 'clock'>('tables');
 
   // BGM toggle state — synced with the audio module
   const [bgmOn, setBgmOn] = useState(() => isBGMEnabled());
@@ -94,11 +136,23 @@ export default function App() {
         setUnlockedWorlds(JSON.parse(saved));
       } catch (e) {}
     }
+
+    const savedClock = localStorage.getItem('panda-droom-clock-unlocked');
+    if (savedClock) {
+      try {
+        setUnlockedClockWorlds(JSON.parse(savedClock));
+      } catch (e) {}
+    }
   }, []);
 
   const saveProgress = (newUnlocked: string[]) => {
     setUnlockedWorlds(newUnlocked);
     localStorage.setItem('panda-droom-unlocked', JSON.stringify(newUnlocked));
+  };
+
+  const saveClockProgress = (newUnlocked: string[]) => {
+    setUnlockedClockWorlds(newUnlocked);
+    localStorage.setItem('panda-droom-clock-unlocked', JSON.stringify(newUnlocked));
   };
 
   const handleStart = (name: string) => {
@@ -109,13 +163,14 @@ export default function App() {
     setView('map');
   };
 
+  // ── TABLES FLOW ──
   const handleSelectWorld = (id: string) => {
     initAudioContext();
     playSound('pop');
     setCurrentWorldId(id);
+    setLastJourney('tables');
 
     const world = Worlds.find(w => w.id === id);
-    // Show intro if this world has one and it hasn't been seen yet
     if (world?.hasIntro && !hasSeenIntro(id)) {
       setView('intro');
     } else {
@@ -133,7 +188,6 @@ export default function App() {
   };
 
   const handleLevelComplete = (id: string, action: 'map' | 'next' = 'map') => {
-    // Find next world
     const currentIndex = Worlds.findIndex(w => w.id === id);
     let nextWorldId: string | null = null;
 
@@ -145,11 +199,9 @@ export default function App() {
       }
     }
 
-    // Record daily completion and check limit
     const completedToday = recordLevelCompletion();
 
     if (completedToday >= MAX_LEVELS_PER_DAY) {
-      // Show "done for today" screen
       setView('done');
       setCurrentWorldId(null);
       return;
@@ -166,6 +218,54 @@ export default function App() {
     } else {
       setView('map');
       setCurrentWorldId(null);
+    }
+  };
+
+  // ── CLOCK FLOW ──
+  const handleSelectClockWorld = (id: string) => {
+    initAudioContext();
+    playSound('pop');
+    setCurrentClockWorldId(id);
+    setLastJourney('clock');
+
+    if (!hasSeenClockIntro(id)) {
+      setView('clock-intro');
+    } else {
+      setView('clock-level');
+    }
+  };
+
+  const handleClockIntroComplete = () => {
+    if (currentClockWorldId) {
+      markClockIntroSeen(currentClockWorldId);
+    }
+    initAudioContext();
+    playSound('pop');
+    setView('clock-level');
+  };
+
+  const handleClockLevelComplete = (id: string, action: 'map' | 'next' = 'map') => {
+    const currentIndex = CLOCK_WORLDS.findIndex(w => w.id === id);
+    let nextWorldId: string | null = null;
+
+    if (currentIndex >= 0 && currentIndex < CLOCK_WORLDS.length - 1) {
+      const nextWorld = CLOCK_WORLDS[currentIndex + 1];
+      nextWorldId = nextWorld.id;
+      if (!unlockedClockWorlds.includes(nextWorld.id)) {
+        saveClockProgress([...unlockedClockWorlds, nextWorld.id]);
+      }
+    }
+
+    if (action === 'next' && nextWorldId) {
+      setCurrentClockWorldId(nextWorldId);
+      if (!hasSeenClockIntro(nextWorldId)) {
+        setView('clock-intro');
+      } else {
+        setView('clock-level');
+      }
+    } else {
+      setView('clock-map');
+      setCurrentClockWorldId(null);
     }
   };
 
@@ -200,8 +300,99 @@ export default function App() {
               playerName={playerName}
               unlockedWorlds={unlockedWorlds}
               onSelectWorld={handleSelectWorld}
-              onOpenTreasury={() => { initAudioContext(); playSound('pop'); setView('treasury'); }}
+              onOpenTreasury={() => {
+                initAudioContext();
+                playSound('pop');
+                setLastJourney('tables');
+                setView('treasury');
+              }}
               onOpenPractice={() => { initAudioContext(); playSound('pop'); setView('practice'); }}
+              onSwitchToClock={() => {
+                initAudioContext();
+                playSound('pop');
+                setLastJourney('clock');
+                setView('clock-map');
+              }}
+            />
+          </motion.div>
+        )}
+
+        {view === 'clock-map' && (
+          <motion.div
+            key="clock-map"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="w-full flex-1 flex flex-col relative min-h-0"
+          >
+            <ClockMap
+              playerName={playerName}
+              unlockedClockWorlds={unlockedClockWorlds}
+              onSelectWorld={handleSelectClockWorld}
+              onOpenTreasury={() => {
+                initAudioContext();
+                playSound('pop');
+                setLastJourney('clock');
+                setView('treasury');
+              }}
+              onOpenFreePlay={() => { initAudioContext(); playSound('pop'); setView('clock-freeplay'); }}
+              onSwitchToTables={() => {
+                initAudioContext();
+                playSound('pop');
+                setLastJourney('tables');
+                setView('map');
+              }}
+            />
+          </motion.div>
+        )}
+
+        {view === 'clock-intro' && currentClockWorldId && (
+          <motion.div
+            key="clock-intro"
+            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -20 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+            className="w-full flex-1 flex flex-col relative bg-sky-100 min-h-0"
+          >
+            <ClockIntroScreen
+              worldId={currentClockWorldId}
+              onComplete={handleClockIntroComplete}
+            />
+          </motion.div>
+        )}
+
+        {view === 'clock-level' && currentClockWorldId && (
+          <motion.div
+            key="clock-level"
+            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -20 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+            className="w-full flex-1 flex flex-col relative bg-sky-100 min-h-0"
+          >
+            <ClockLevel
+              key={currentClockWorldId}
+              worldId={currentClockWorldId}
+              unlockedClockWorlds={unlockedClockWorlds}
+              onBack={() => { initAudioContext(); playSound('pop'); setView('clock-map'); }}
+              onComplete={handleClockLevelComplete}
+            />
+          </motion.div>
+        )}
+
+        {view === 'clock-freeplay' && (
+          <motion.div
+            key="clock-freeplay"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="w-full flex-1 flex flex-col relative min-h-0"
+          >
+            <ClockFreePlay
+              onBack={() => { initAudioContext(); playSound('pop'); setView('clock-map'); }}
             />
           </motion.div>
         )}
@@ -285,14 +476,23 @@ export default function App() {
             <Treasury
               playerName={playerName}
               unlockedWorlds={unlockedWorlds}
-              onBack={() => { initAudioContext(); playSound('pop'); setView('map'); }}
+              unlockedClockWorlds={unlockedClockWorlds}
+              initialTab={lastJourney}
+              onBack={() => {
+                initAudioContext();
+                playSound('pop');
+                setView(lastJourney === 'clock' ? 'clock-map' : 'map');
+              }}
               onReset={() => {
                 setPlayerName('');
                 setUnlockedWorlds([Worlds[0].id]);
+                setUnlockedClockWorlds([CLOCK_WORLDS[0].id]);
                 localStorage.removeItem('panda-droom-player-name');
                 localStorage.removeItem('panda-droom-unlocked');
+                localStorage.removeItem('panda-droom-clock-unlocked');
                 localStorage.removeItem('panda-droom-daily');
                 localStorage.removeItem('panda-droom-intros');
+                localStorage.removeItem('panda-droom-clock-intros');
                 setView('start');
               }}
             />
@@ -301,33 +501,19 @@ export default function App() {
 
       </AnimatePresence>
 
-      {/* 🔊 Floating BGM toggle */}
-      <button
+      {/* 🔊 Floating BGM toggle (bottom-left to never overlap with bottom-right action buttons) */}
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         type="button"
         onClick={() => { initAudioContext(); toggleBGM(); }}
         aria-label={bgmOn ? 'Achtergrondmuziek uitschakelen' : 'Achtergrondmuziek inschakelen'}
-        style={{
-          position: 'fixed',
-          bottom: '1rem',
-          right: '1rem',
-          zIndex: 9999,
-          width: '3rem',
-          height: '3rem',
-          borderRadius: '50%',
-          border: '3px solid rgba(0,0,0,0.12)',
-          background: bgmOn ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.15)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.4rem',
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          transition: 'background 0.2s, transform 0.15s',
-        }}
+        className={`fixed bottom-4 left-4 z-50 w-11 h-11 rounded-full border-3 border-dark/20 shadow-md backdrop-blur-md flex items-center justify-center cursor-pointer transition-all ${
+          bgmOn ? 'bg-white/90 text-dark' : 'bg-black/20 text-gray-700'
+        }`}
       >
         {bgmOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
-      </button>
+      </motion.button>
     </div>
   );
 }

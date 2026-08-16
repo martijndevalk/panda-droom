@@ -1,61 +1,45 @@
-**Add your own guidelines here**
-<!--
+# 🐼 Panda Droom — Project Guidelines & Standard Operating Procedures
 
-System Guidelines
+Deze gids bevat de standaarden en richtlijnen voor ontwikkelaars, ontwerpers en content creators die werken aan **Panda Droom**.
 
-Use this file to provide the AI with rules and guidelines you want it to follow.
-This template outlines a few examples of things you can add. You can add your own sections and format it to suit your needs
+---
 
-TIP: More context isn't always better. It can confuse the LLM. Try and add the most important rules you need
+## 🎯 1. Doelgroep & Didactische Uitgangspunten
 
-# General guidelines
+### 👥 Voor wie maken we Panda Droom?
+1. **Basisschoolkinderen (Groep 3 t/m 6, leeftijd 6 - 10 jaar)**:
+   - Kinderen die kennismaken met tafels en vermenigvuldiging (Getallenreis).
+   - Kinderen die analoog en digitaal leren klokkijken (Tijdreis / Klokkenreis).
+2. **Kinderen met speciale leerbehoeften**:
+   - **Dyscalculie / Rekenangst**: Geen tijdsdruk, geen strafpunten, stapsgewijze visuele hulpmiddelen.
+   - **ADHD / Concentratie-uitdagingen**: Heldere, afleidingsvrije schermen, korte leersessies (daglimiet van 2 levels), directe beloning.
+   - **Dyslexie / Leesmoeite**: Volledige spraakondersteuning (TTS) van alle sommen, vragen en instructies.
+3. **Ouders & Leerkrachten**:
+   - Transparant inzicht in voortgang en beheersing.
+   - Mogelijkheid tot het instellen van reële, motiverende beloningen (bijv. samen pannenkoeken eten).
 
-Any general rules you want the AI to follow.
-For example:
+---
 
-* Only use absolute positioning when necessary. Opt for responsive and well structured layouts that use flexbox and grid by default
-* Refactor code as you go to keep code clean
-* Keep file sizes small and put helper functions and components in their own files.
+## 🎨 2. Design Standaarden (Zie ook `.agents/skills/panda-design/`)
 
---------------
+- **Visuele Stijl**: Vriendelijke "Toy Box" cartoonstijl.
+- **Randen & Schaduwen**: Dikke randen (`border-2` of `border-3 border-dark`), speelse harde drop-shadows (`shadow-[3px_3px_0px_theme(colors.dark)]`).
+- **Ergonomie**: Touch-targets minimaal 48x48px (optimaal 56px).
+- **Consistente Componenten**: Gebruik altijd de componenten uit `src/components/shared/` (`JourneyHeader`, `JourneyNode`, `JourneyFinishNode`, `LevelHeader`, `LevelCompleteModal`, `EncouragementBanner`).
 
-# Design system guidelines
-Rules for how the AI should make generations look like your company's design system
+---
 
-Additionally, if you select a design system to use in the prompt box, you can reference
-your design system's components, tokens, variables and components.
-For example:
+## 💻 3. Code & Architectuur (Zie ook `.agents/skills/panda-code/`)
 
-* Use a base font-size of 14px
-* Date formats should always be in the format “Jun 10”
-* The bottom toolbar should only ever have a maximum of 4 items
-* Never use the floating action button with the bottom toolbar
-* Chips should always come in sets of 3 or more
-* Don't use a dropdown if there are 2 or fewer options
+- **Tech Stack**: Astro 5 + React 18 + Tailwind CSS v4 + Motion (`motion/react`) + TypeScript.
+- **State & Storage**: Alle LocalStorage sleutels starten met `panda-droom-*`.
+- **Audio & Haptics**: Iedere interactieve knop roept `initAudioContext()`, `playSound()` en `useWebHaptics` trigger aan.
+- **Type Safety**: Geen `any` types; documenteer complexe interfaces in `GameData.ts` of `clockData.ts`.
 
-You can also create sub sections and add more specific details
-For example:
+---
 
+## ✍️ 4. Copy & Tone of Voice (Zie ook `.agents/skills/panda-copy/`)
 
-## Button
-The Button component is a fundamental interactive element in our design system, designed to trigger actions or navigate
-users through the application. It provides visual feedback and clear affordances to enhance user experience.
-
-### Usage
-Buttons should be used for important actions that users need to take, such as form submissions, confirming choices,
-or initiating processes. They communicate interactivity and should have clear, action-oriented labels.
-
-### Variants
-* Primary Button
-  * Purpose : Used for the main action in a section or page
-  * Visual Style : Bold, filled with the primary brand color
-  * Usage : One primary button per section to guide users toward the most important action
-* Secondary Button
-  * Purpose : Used for alternative or supporting actions
-  * Visual Style : Outlined with the primary color, transparent background
-  * Usage : Can appear alongside a primary button for less important actions
-* Tertiary Button
-  * Purpose : Used for the least important actions
-  * Visual Style : Text-only with no border, using primary color
-  * Usage : For actions that should be available but not emphasized
--->
+- **Karakter van Panda**: Een vrolijk, warm, geduldig en speels leervriendje.
+- **Bemoedigend & Positief**: Nooit "Fout!" of "Verkeerd!". Gebruik altijd opbouwende taal zoals "Oeps, bijna!", "Probeer het nog eens rustig!".
+- **TTS Vriendelijk**: Schrijf zinnen bondig en phonetisch helder zonder onnodige leestekens of afkortingen.

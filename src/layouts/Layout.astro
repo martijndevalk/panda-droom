@@ -7,7 +7,9 @@ interface Props {
 }
 
 const { title } = Astro.props;
-const base = import.meta.env.BASE_URL;
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const isProd = import.meta.env.PROD;
 ---
 
 <!DOCTYPE html>
@@ -17,6 +19,7 @@ const base = import.meta.env.BASE_URL;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Leer tafels met Panda! Een vriendelijke reken-app voor kinderen." />
     <meta name="theme-color" content="#FFF8F0" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Panda Droom" />
@@ -28,13 +31,34 @@ const base = import.meta.env.BASE_URL;
   </head>
   <body class="m-0 p-0 bg-light select-none font-sans flex flex-col min-h-0 overflow-hidden">
     <slot />
-    <script is:inline>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const base = document.documentElement.getAttribute('data-base-url') || '/';
-          navigator.serviceWorker.register(`${base}sw.js`, { updateViaCache: 'none' }).catch(() => {});
-        });
-      }
-    </script>
+    {isProd ? (
+      <script is:inline>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            const base = document.documentElement.getAttribute('data-base-url') || '/';
+            navigator.serviceWorker.register(`${base}sw.js`, { updateViaCache: 'none' }).catch(() => {});
+          });
+        }
+      </script>
+    ) : (
+      <script is:inline>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (const registration of registrations) {
+              registration.unregister();
+            }
+          });
+          if ('caches' in window) {
+            caches.keys().then((keys) => {
+              for (const key of keys) {
+                if (key.startsWith('panda-droom')) {
+                  caches.delete(key);
+                }
+              }
+            });
+          }
+        }
+      </script>
+    )}
   </body>
 </html>

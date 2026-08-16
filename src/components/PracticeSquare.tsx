@@ -38,9 +38,9 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
     initAudioContext();
     ensureAudioUnlocked();
     const weakText = weakFacts.length > 0
-      ? `Er zijn ${weakFacts.length} moeilijke sommen om te oefenen!`
-      : 'Kies een tafel om te oefenen!';
-    speak(`Welkom op het Oefenplein! ${weakText}`);
+      ? `Er staan ${weakFacts.length} pittige sommen klaar om te oefenen!`
+      : 'Kies een gezellige tafel om te oefenen!';
+    speak(`Welkom op het Oefenplein! Hier kun je lekker vrij oefenen en groene blaadjes verzamelen voor Panda. Nom nom nom! ${weakText}`);
   };
 
   useEffect(() => {
@@ -55,13 +55,13 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
     return () => stopSpeaking();
   }, []);
 
-  const startPractice = (specificTable?: number) => {
+  const startPractice = (specificTable?: number, mode: 'weak' | 'mix' | 'table' = specificTable !== undefined ? 'table' : 'mix') => {
     initAudioContext();
     ensureAudioUnlocked();
     playSound('pop');
     trigger('success');
 
-    const session = selectPracticeSession(unlockedWorlds, specificTable);
+    const session = selectPracticeSession(unlockedWorlds, specificTable, mode);
     if (session.length === 0) return;
 
     recordReviewSession();
@@ -187,7 +187,7 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
             type="button"
             whileHover={{ scale: 1.02, rotate: 0.5 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => startPractice()}
+            onClick={() => startPractice(undefined, 'weak')}
             className="w-full btn h-auto px-4 py-4 sm:px-6 sm:py-5 group rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 border-4 border-amber-400 hover:border-amber-500 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] transition-all"
           >
             <div className="text-left flex items-center gap-3 sm:gap-4">
@@ -225,7 +225,7 @@ export function PracticeSquare({ unlockedWorlds, onBack }: PracticeSquareProps) 
           type="button"
           whileHover={{ scale: 1.02, rotate: -0.5 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => startPractice()}
+          onClick={() => startPractice(undefined, 'mix')}
           className="w-full btn h-auto px-4 py-4 sm:px-6 sm:py-5 group rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border-4 border-green-400 hover:border-green-500 shadow-[4px_4px_0px_rgba(0,0,0,0.1)] transition-all"
         >
           <div className="text-left flex items-center gap-3 sm:gap-4">

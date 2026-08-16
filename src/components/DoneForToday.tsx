@@ -23,7 +23,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
     initAudioContext();
     ensureAudioUnlocked();
     playSound('cheer');
-    speak(`Super gedaan! Goed bezig, ${playerName}! Je bent klaar voor vandaag. Morgen weer een beetje oefenen!`);
+    speak(`Wauw, super gedaan ${playerName}! Jouw hersenen hebben keihard gewerkt. Panda doet een vreugdedansje! Tijd voor een lekker dutje en morgen weer gezellig spelen!`);
   };
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
             transition={{ delay: 0.2 }}
             className="text-3xl sm:text-4xl font-black text-green-600 tracking-tight drop-shadow-sm"
           >
-            Super gedaan!
+            Supertrots! 🎉
           </motion.h2>
         </div>
 
@@ -75,18 +75,18 @@ export function DoneForToday({ playerName, onBackToMap }: DoneForTodayProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="text-xl sm:text-2xl text-gray-700 mb-2 font-medium"
+          className="text-xl sm:text-2xl text-gray-700 mb-2 font-black"
         >
-          Goed bezig, {playerName}! 🌟
+          Wat knap gerekend, {playerName}! 🌟
         </motion.p>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-lg text-gray-500 mb-8 font-medium"
+          className="text-base sm:text-lg text-gray-600 mb-8 font-medium"
         >
-          Je bent klaar voor vandaag. Morgen weer een beetje oefenen!
+          Je bent klaar voor vandaag. Tijd voor een dansje of een lekker pandadutje! 🐼💤
         </motion.p>
 
         <motion.button

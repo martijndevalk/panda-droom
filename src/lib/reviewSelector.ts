@@ -113,11 +113,13 @@ export function selectReviewForLevel(
  *
  * @param unlockedWorlds — all unlocked world IDs
  * @param specificTable  — optional: only practice this table
+ * @param mode           — 'weak' for weak facts focus, 'mix' for all tables mix, 'table' for single table
  * @returns 8 review MathProblems
  */
 export function selectPracticeSession(
   unlockedWorlds: string[],
   specificTable?: number,
+  mode: 'weak' | 'mix' | 'table' = specificTable !== undefined ? 'table' : 'mix',
 ): MathProblem[] {
   const SESSION_SIZE = 8;
   const completedTables = specificTable !== undefined
@@ -129,37 +131,72 @@ export function selectPracticeSession(
   const selected = new Set<string>();
   const result: MathProblem[] = [];
 
-  // Priority 1: weak facts
-  const weak = getWeakFacts(completedTables);
-  for (const { key } of weak) {
-    if (selected.size >= SESSION_SIZE) break;
-    if (!selected.has(key)) {
-      selected.add(key);
+  if (mode === 'weak') {
+    // Mode 'weak': Prioritize all weak facts, and if fewer than SESSION_SIZE, add due facts and random facts
+    const weak = getWeakFacts(completedTables);
+    for (const { key } of weak) {
+      if (result.length >= SESSION_SIZE) break;
       result.push(factKeyToProblem(key));
+      selected.add(key);
     }
-  }
 
-  // Priority 2: due facts
-  if (selected.size < SESSION_SIZE) {
-    const due = getDueFacts(completedTables);
-    for (const { key } of due) {
-      if (selected.size >= SESSION_SIZE) break;
+    if (result.length < SESSION_SIZE) {
+      const due = getDueFacts(completedTables);
+      for (const { key } of due) {
+        if (result.length >= SESSION_SIZE) break;
+        if (!selected.has(key)) {
+          selected.add(key);
+          result.push(factKeyToProblem(key));
+        }
+      }
+    }
+
+    let attempts = 0;
+    while (result.length < SESSION_SIZE && attempts < 40) {
+      const problem = randomFactFromTables(completedTables);
+      if (problem.factKey) {
+        result.push(problem);
+      }
+      attempts++;
+    }
+  } else if (mode === 'mix') {
+    // Mode 'mix': Balanced random mix across all completed tables
+    let attempts = 0;
+    while (result.length < SESSION_SIZE && attempts < 60) {
+      const problem = randomFactFromTables(completedTables);
+      if (problem.factKey && !selected.has(problem.factKey)) {
+        selected.add(problem.factKey);
+        result.push(problem);
+      }
+      attempts++;
+    }
+    // Fallback if not enough unique facts found
+    while (result.length < SESSION_SIZE) {
+      result.push(randomFactFromTables(completedTables));
+    }
+  } else {
+    // Mode 'table': Specific table practice
+    const weak = getWeakFacts(completedTables);
+    for (const { key } of weak) {
+      if (result.length >= SESSION_SIZE) break;
       if (!selected.has(key)) {
         selected.add(key);
         result.push(factKeyToProblem(key));
       }
     }
-  }
 
-  // Priority 3: fill with random facts
-  let attempts = 0;
-  while (selected.size < SESSION_SIZE && attempts < 40) {
-    const problem = randomFactFromTables(completedTables);
-    if (problem.factKey && !selected.has(problem.factKey)) {
-      selected.add(problem.factKey);
-      result.push(problem);
+    let attempts = 0;
+    while (result.length < SESSION_SIZE && attempts < 40) {
+      const problem = randomFactFromTables(completedTables);
+      if (problem.factKey && !selected.has(problem.factKey)) {
+        selected.add(problem.factKey);
+        result.push(problem);
+      }
+      attempts++;
     }
-    attempts++;
+    while (result.length < SESSION_SIZE) {
+      result.push(randomFactFromTables(completedTables));
+    }
   }
 
   // Shuffle (Fisher-Yates)
@@ -168,7 +205,7 @@ export function selectPracticeSession(
     [result[i], result[j]] = [result[j], result[i]];
   }
 
-  return result;
+  return result.slice(0, SESSION_SIZE);
 }
 
 /**

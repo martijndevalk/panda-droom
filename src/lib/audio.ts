@@ -185,6 +185,45 @@ export const playSound = (type: SoundEffectOptions): void => {
   }
 };
 
+/**
+ * Play a light, crisp mechanical clock tick/pop sound when dragging hands.
+ */
+export const playTickSound = (): void => {
+  if (typeof window === 'undefined') return;
+  initAudioContext();
+
+  // 1. Play via Howler (preloaded audio asset, always works)
+  try {
+    if (sounds.pop) {
+      sounds.pop.volume(0.6);
+      sounds.pop.play();
+    }
+  } catch (e) {}
+
+  // 2. Synthesize Web Audio click if context is available
+  try {
+    const ctx = Howler.ctx;
+    if (ctx && ctx.state === 'running') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(850 + Math.random() * 150, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
+
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.045);
+    }
+  } catch (e) {}
+};
+
 if (typeof window !== 'undefined') {
   // Global click listener to automatically play a 'pop' sound on any button click
   // and resume AudioContext globally.
