@@ -10,8 +10,15 @@
  * env vars that are safe to expose).
  */
 
-/** Cache: question text → Object URL pointing to the audio blob. */
-const audioCache = new Map<string, string>();
+import {
+  computeAudioHash,
+  getCachedAudioBlob,
+  saveAudioBlobToCache,
+  clearAudioCache,
+} from './ttsCache';
+
+/** Cache: audio hash → Object URL pointing to the active audio blob in memory. */
+const memoryAudioUrlCache = new Map<string, string>();
 
 /**
  * Shared Audio element — reused across all TTS playback.
@@ -110,20 +117,54 @@ function getApiKey(): string | null {
  *
  * If TTS is not configured (no API key), falls back to native Web Speech.
  */
+function getStaticAudioUrl(hash: string): string {
+  const base = (import.meta as any).env?.BASE_URL ?? '/';
+  const prefix = base.endsWith('/') ? base : `${base}/`;
+  return `${prefix}audio/tts/${hash}.mp3`;
+}
+
+/** Set of available pre-generated static audio hashes */
+let staticAudioManifest: Set<string> | null = null;
+let manifestFetchPromise: Promise<Set<string>> | null = null;
+
+async function hasStaticAudio(hash: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  if (staticAudioManifest) return staticAudioManifest.has(hash);
+
+  if (!manifestFetchPromise) {
+    manifestFetchPromise = (async () => {
+      try {
+        const base = (import.meta as any).env?.BASE_URL ?? '/';
+        const prefix = base.endsWith('/') ? base : `${base}/`;
+        const res = await fetch(`${prefix}audio/tts/manifest.json`);
+        if (res.ok) {
+          const data = await res.json();
+          staticAudioManifest = new Set(Object.keys(data));
+        } else {
+          staticAudioManifest = new Set();
+        }
+      } catch {
+        staticAudioManifest = new Set();
+      }
+      return staticAudioManifest;
+    })();
+  }
+
+  const manifest = await manifestFetchPromise;
+  return manifest.has(hash);
+}
+
+/**
+ * Speak the given text using ElevenLabs TTS (Static MP3 -> IndexedDB Cache -> Live API -> Native Web Speech).
+ * Returns a promise that resolves when playback starts.
+ */
 export async function speak(text: string): Promise<void> {
   if (typeof window === 'undefined') return;
 
   // Stop any currently playing audio
   stopSpeaking();
 
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    console.warn('[TTS] No ElevenLabs API key found. Falling back to native Web Speech API.');
-    speakNative(text);
-    return;
-  }
-
-  // Ensure the shared element exists and is unlocked (await on Android)
+  // Ensure the shared element exists and is unlocked (await on Android/iOS)
   await ensureAudioUnlocked();
   if (!sharedAudio) {
     speakNative(text);
@@ -131,9 +172,32 @@ export async function speak(text: string): Promise<void> {
   }
 
   try {
-    let audioUrl = audioCache.get(text);
+    const hash = await computeAudioHash(text, VOICE_ID, MODEL_ID);
+    let audioUrl = memoryAudioUrlCache.get(hash);
 
+    // Tier 1: Check static pre-generated MP3 file in /public/audio/tts/
+    if (!audioUrl && (await hasStaticAudio(hash))) {
+      audioUrl = getStaticAudioUrl(hash);
+      memoryAudioUrlCache.set(hash, audioUrl);
+    }
+
+    // Tier 2: Check persistent browser IndexedDB cache (0 credits, offline-ready)
     if (!audioUrl) {
+      const cachedBlob = await getCachedAudioBlob(hash);
+      if (cachedBlob) {
+        audioUrl = URL.createObjectURL(cachedBlob);
+        memoryAudioUrlCache.set(hash, audioUrl);
+      }
+    }
+
+    // Tier 4: Live ElevenLabs API generation (if API key is provided)
+    if (!audioUrl) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        speakNative(text);
+        return;
+      }
+
       const response = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
         {
@@ -165,20 +229,23 @@ export async function speak(text: string): Promise<void> {
       }
 
       const blob = await response.blob();
+      // Persist in IndexedDB for subsequent visits & offline play
+      saveAudioBlobToCache(hash, text, VOICE_ID, MODEL_ID, blob).catch((err) => {
+        console.warn('[TTS] Failed to persist audio blob to IndexedDB:', err);
+      });
+
       audioUrl = URL.createObjectURL(blob);
-      audioCache.set(text, audioUrl);
+      memoryAudioUrlCache.set(hash, audioUrl);
     }
 
-    // Swap the src on the shared (already-unlocked) element and play.
-    // Android Chrome requires an explicit load() after changing src,
-    // otherwise play() may silently fail on a reused element.
+    // Play the resolved audio URL on the shared element
     sharedAudio.src = audioUrl;
     sharedAudio.currentTime = 0;
     sharedAudio.load();
 
     await sharedAudio.play();
   } catch (err) {
-    console.error('[TTS] Failed to speak with ElevenLabs, falling back to native TTS:', err);
+    console.error('[TTS] Failed to speak with ElevenLabs audio, falling back to native TTS:', err);
     speakNative(text);
   }
 }
@@ -332,3 +399,6 @@ export function isTtsConfigured(): boolean {
   if (typeof window === 'undefined') return false;
   return !!getApiKey() || 'speechSynthesis' in window;
 }
+
+export { clearAudioCache };
+
